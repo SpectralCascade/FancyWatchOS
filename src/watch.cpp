@@ -8,11 +8,6 @@ void Watch::Init()
     timer.Start();
 }
 
-void Watch::Log(char* message)
-{
-    driver->tft->println(message);
-}
-
 void Watch::Update()
 {
     uint32_t startTicks = timer.GetTicks();

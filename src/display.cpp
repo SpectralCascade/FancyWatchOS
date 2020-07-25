@@ -6,7 +6,7 @@
 Display::Display(TTGOClass* watch)
 {
     device = watch;
-    //renderBuffer = new Surface(320, 240);
+    renderBuffer = new Surface(320, 240);
 }
 
 void Display::Enable()
@@ -51,14 +51,14 @@ bool Display::IsEnabled()
 
 void Display::Clear(Color color)
 {
-    //renderBuffer->Clear(color);
+    renderBuffer->Clear(color);
 }
 
 void Display::RenderPresent()
 {
-    /*device->tft->startWrite();
+    device->tft->startWrite();
     device->tft->pushPixels(renderBuffer->GetPixels(), renderBuffer->GetWidth() * renderBuffer->GetHeight());
-    device->tft->endWrite();*/
+    device->tft->endWrite();
 }
 
 TFT_eSPI* Display::GetTFT()

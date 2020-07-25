@@ -6,6 +6,7 @@
 #include "config.h"
 #include "display.h"
 #include "watch.h"
+#include "utils.h"
 
 // The watch system itself
 Watch* watch;
@@ -51,22 +52,22 @@ void loop()
         if (power->isVbusPlugInIRQ())
         {
             e.type = EVENT_POWER_CONNECT;
-            watch->Log("Power connect!");
+            Log("Power connect!");
         }
         else if (power->isVbusRemoveIRQ())
         {
             e.type = EVENT_POWER_DISCONNECT;
-            watch->Log("Power disconnect!");
+            Log("Power disconnect!");
         }
         else if (power->isPEKShortPressIRQ())
         {
             e.type = EVENT_POWER_BUTTON;
-            watch->Log("Power button!");
+            Log("Power button!");
         }
         else
         {
             e.type = EVENT_POWER_CHARGE;
-            watch->Log("Power charge!");
+            Log("Power charge!");
         }
         power->clearIRQ();
         // Add the event to the queue

@@ -22,7 +22,7 @@ Surface::Surface(uint32_t w, uint32_t h, uint8_t format, uint32_t color)
     uint32_t depth = GetDepth((PixelFormat)format);
     pitch = depth * w;
     // TODO: support other formats
-    pixels = new uint16_t[(pitch * h) / depth] { (uint16_t)color };
+    //pixels = new uint16_t[(pitch / 2) * h] { 0 };
 }
 
 Surface::Surface(void* pixels, uint32_t w, uint32_t h, uint16_t format)
@@ -39,6 +39,12 @@ Surface::Surface(void* pixels, uint32_t w, uint32_t h, uint16_t format)
     {
         ((uint8_t*)this->pixels)[i] = ((uint8_t*)pixels)[i];
     }
+}
+
+Surface::~Surface()
+{
+    // TODO: handle different formats
+    //delete[] (uint16_t*)pixels;
 }
 
 void* Surface::GetPixels()

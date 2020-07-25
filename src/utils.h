@@ -6,6 +6,11 @@ struct IntRect
     int x, y, w, h;
 };
 
+#define Log(...) TTGOClass::getWatch()->tft->printf(__VA_ARGS__); TTGOClass::getWatch()->tft->printf("\n")
+#define LogInfo(...) TTGOClass::getWatch()->tft->setTextColor(TFT_GREEN); Log(__VA_ARGS__)
+#define LogWarn(...) TTGOClass::getWatch()->tft->setTextColor(TFT_ORANGE); Log(__VA_ARGS__)
+#define LogError(...) TTGOClass::getWatch()->tft->setTextColor(TFT_RED); Log(__VA_ARGS__)
+
 /// Clamps between a range
 float Clamp(float n, float min = 0, float max = 1);
 int Clamp(int n, int min, int max);

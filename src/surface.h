@@ -25,6 +25,9 @@ public:
     // Makes a copy of a given array of pixels in the specified format.
     Surface(void* pixels, uint32_t w, uint32_t h, uint16_t format = PF_RGB565);
 
+    // Destructor to free pixels
+    ~Surface();
+
     // No implicit copying.
     Surface(const Surface& src) = delete;
     Surface operator=(const Surface& src) = delete;

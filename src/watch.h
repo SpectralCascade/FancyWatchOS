@@ -48,8 +48,6 @@ public:
 
     void ShowDebugInfo();
 
-    void Log(char* message);
-
     Display display;
 
     TTGOClass* driver;
