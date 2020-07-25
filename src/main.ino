@@ -4,138 +4,78 @@
  */
 
 #include "config.h"
+#include "display.h"
+#include "watch.h"
 
-enum PowerEvent
-{
-    POWER_BUTTON = 0,
-    POWER_CONNECT,
-    POWER_DISCONNECT
-};
-
-TTGOClass *watch;
-bool awake = false;
-bool togglePower = false;
-int powerEventCount = 0;
-int buttonPressCount = 0;
-int lastPowerEvent = POWER_CONNECT;
-const unsigned int POWER_CHECK_INTERVAL = 32;
-
-void WatchWakeUp()
-{
-    awake = true;
-    ToggleDisplay(true);
-}
-
-void UpdateInfo()
-{
-    watch->tft->fillScreen(TFT_BLACK);
-    watch->tft->setTextColor(TFT_GREEN);
-    watch->tft->setCursor(0, 0);
-    char dest[100] = {'\0'};
-    sprintf(dest, "Power events: %d | Button events: %d", powerEventCount, buttonPressCount);
-    watch->tft->println(dest);
-    watch->tft->println("\n\nWoken by:\n");
-    watch->tft->println(lastPowerEvent == POWER_BUTTON ? "POWER BUTTON" : (lastPowerEvent == POWER_CONNECT ? "POWER CONNECT" : "POWER DISCONNECT"));
-}
-
-void ToggleDisplay(bool on)
-{
-    if (on)
-    {
-        // Power up the backlight
-        watch->power->setPowerOutPut(AXP202_LDO2, true);
-        watch->bl->begin();
-        watch->bl->on();
-        // Wake up the TFT
-        watch->displayWakeup();
-    }
-    else
-    {
-        watch->displaySleep();
-        // Turn off the screen
-        watch->power->setPowerOutPut(AXP202_LDO2, false);
-    }
-}
-
-void WatchSleep()
-{
-    awake = false;
-    ToggleDisplay(false);
-    // Go into deep-sleep mode
-    // Use ext1 for external wakeup
-    //esp_sleep_enable_ext1_wakeup(GPIO_SEL_35, ESP_EXT1_WAKEUP_ALL_LOW);
-    //esp_deep_sleep_start();
-}
-
-// ISR for handling AXP202 power interrupts, such as plugging in a power cable, pressing the power button etc.
-void OnPowerInterrupt()
-{
-    togglePower = true;
-}
-
-void InitInterrupts(TTGOClass* ttgoWatch)
-{
-    // Setup interrupt to indicate when the power state changes.
-    pinMode(AXP202_INT, INPUT_PULLUP);
-    attachInterrupt(AXP202_INT, OnPowerInterrupt, FALLING);
-
-    // Enable the power interrupts
-    ttgoWatch->power->enableIRQ(AXP202_PEK_SHORTPRESS_IRQ | AXP202_VBUS_REMOVED_IRQ | AXP202_VBUS_CONNECT_IRQ | AXP202_CHARGING_IRQ, true);
-    //  Clear the current interrupt status
-    ttgoWatch->power->clearIRQ();
-}
+// The watch system itself
+Watch* watch;
+// Events queue
+QueueHandle_t events;
+bool powerIRQ = false;
 
 void setup()
 {
-    // Get object representing the watch
-    watch = TTGOClass::getWatch();
+    // Setup the event queue
+    // Maximum number of events allowed per frame. Pretty high to deal with all the event types we could get.
+    events = xQueueCreate(256, sizeof(Event));
 
-    // Initialize the the watch
-    watch->begin();
+    // Initialise the watch
+    watch = new Watch(TTGOClass::getWatch(), events);
+    watch->Init();
 
-    InitInterrupts(watch);
+    InitInterrupts(watch->driver);
 
-    WatchWakeUp();
+    // Init display
+    watch->display.Enable();
+}
+
+void InitInterrupts(TTGOClass* device)
+{
+    //
+    // Power interrupts
+    //
+    pinMode(AXP202_INT, INPUT_PULLUP);
+    attachInterrupt(AXP202_INT, [] { powerIRQ = true; }, FALLING);
+    device->power->enableIRQ(AXP202_PEK_SHORTPRESS_IRQ | AXP202_VBUS_REMOVED_IRQ | AXP202_VBUS_CONNECT_IRQ | AXP202_CHARGING_IRQ, true);
+    device->power->clearIRQ();
 }
 
 void loop()
 {
-    delay(POWER_CHECK_INTERVAL);
-
-    if (togglePower)
+    if (powerIRQ)
     {
-        watch->power->readIRQ();
-        if (watch->power->isVbusPlugInIRQ())
-        {
-            lastPowerEvent = POWER_CONNECT;
-        }
-        else if (watch->power->isVbusRemoveIRQ())
-        {
-            lastPowerEvent = POWER_DISCONNECT;
-        }
-        else if (watch->power->isPEKShortPressIRQ())
-        {
-            lastPowerEvent = POWER_BUTTON;
-            buttonPressCount++;
+        AXP20X_Class* power = watch->driver->power;
+        power->readIRQ();
 
-            // Power button is pressed, toggle the display
-            if (awake)
-            {
-                WatchSleep();
-            }
-            else
-            {
-                WatchWakeUp();
-            }
+        Event e;
+        if (power->isVbusPlugInIRQ())
+        {
+            e.type = EVENT_POWER_CONNECT;
+            watch->Log("Power connect!");
         }
-        powerEventCount++;
-        togglePower = true;
-        watch->power->clearIRQ();
+        else if (power->isVbusRemoveIRQ())
+        {
+            e.type = EVENT_POWER_DISCONNECT;
+            watch->Log("Power disconnect!");
+        }
+        else if (power->isPEKShortPressIRQ())
+        {
+            e.type = EVENT_POWER_BUTTON;
+            watch->Log("Power button!");
+        }
+        else
+        {
+            e.type = EVENT_POWER_CHARGE;
+            watch->Log("Power charge!");
+        }
+        power->clearIRQ();
+        // Add the event to the queue
+        xQueueSend(events, &e, portMAX_DELAY);
 
-        UpdateInfo();
-
-        togglePower = false;
+        powerIRQ = false;
     }
+
+    watch->Update();
 }
 
 
