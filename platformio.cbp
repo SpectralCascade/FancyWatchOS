@@ -154,10 +154,8 @@
 			<Add directory="C:/Users/2013b/.platformio/packages/tool-unity" />
 		</Compiler>
 		<Unit filename="platformio.ini" />
-		<Unit filename="src/SimpleWatch.ino" />
+		<Unit filename="src/main.ino" />
 		<Unit filename="src/config.h" />
-		<Unit filename="src/gui.cpp" />
-		<Unit filename="src/gui.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
