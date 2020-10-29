@@ -1,13 +1,7 @@
 #include "color.h"
 
-Color::Color(uint8_t r, uint8_t g, uint8_t b)
+uint16_t Color(uint16_t r, uint16_t g, uint16_t b)
 {
-    this->r = r;
-    this->g = g;
-    this->b = b;
+    return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
 }
 
-Color::Color(uint16_t raw)
-{
-    *this = (uint16_t)raw;
-}

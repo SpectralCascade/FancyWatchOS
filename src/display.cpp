@@ -1,12 +1,18 @@
 #include "config.h"
 
 #include "display.h"
-#include "surface.h"
 
-Display::Display(TTGOClass* watch)
+Surface gRenderBuffer;
+
+void Display::Init(TTGOClass* watch)
 {
     device = watch;
-    renderBuffer = new Surface(320, 240);
+    gRenderBuffer.Init(240, 240, PF_RGB565);
+}
+
+void Display::Destroy()
+{
+    gRenderBuffer.Destroy();
 }
 
 void Display::Enable()
@@ -16,8 +22,9 @@ void Display::Enable()
         // Power up the backlight
         device->power->setPowerOutPut(AXP202_LDO2, true);
 
-        // Initialise it
+        // Initialise it again
         device->openBL();
+
         device->displayWakeup();
         enabled = true;
     }
@@ -49,16 +56,14 @@ bool Display::IsEnabled()
     return enabled;
 }
 
-void Display::Clear(Color color)
+void Display::Clear(uint16_t color)
 {
-    renderBuffer->Clear(color);
+    gRenderBuffer.Clear(color);
 }
 
 void Display::RenderPresent()
 {
-    device->tft->startWrite();
-    device->tft->pushPixels(renderBuffer->GetPixels(), renderBuffer->GetWidth() * renderBuffer->GetHeight());
-    device->tft->endWrite();
+    device->tft->drawBitmap(0, 0, (uint8_t*)gRenderBuffer.GetPixels(), gRenderBuffer.GetWidth(), gRenderBuffer.GetHeight(), TFT_BLUE);
 }
 
 TFT_eSPI* Display::GetTFT()

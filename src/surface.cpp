@@ -16,69 +16,61 @@ uint8_t GetDepth(PixelFormat format)
     }
 }
 
-Surface::Surface(uint32_t w, uint32_t h, uint8_t format, uint32_t color)
+void Surface::Init(uint32_t w, uint32_t h, uint8_t format, bool usePSRAM)
 {
     this->format = format;
     uint32_t depth = GetDepth((PixelFormat)format);
     pitch = depth * w;
-    // TODO: support other formats
-    //pixels = new uint16_t[(pitch / 2) * h] { 0 };
-}
-
-Surface::Surface(void* pixels, uint32_t w, uint32_t h, uint16_t format)
-{
-    this->w = w;
-    this->h = h;
-    this->format = format;
-
-    pitch = ((uint32_t)GetDepth((PixelFormat)format)) * w;
-
-    uint32_t counti = pitch * h;
-    this->pixels = new uint8_t[counti];
-    for (uint32_t i = 0; i < counti; i++)
+    pixels = usePSRAM ? ps_malloc(pitch * h) : malloc(pitch * h);
+    if (pixels == NULL)
     {
-        ((uint8_t*)this->pixels)[i] = ((uint8_t*)pixels)[i];
+        LogError("Failed to allocate memory for surface!\n");
+    }
+    else
+    {
+        this->w = w;
+        this->h = h;
     }
 }
 
-Surface::~Surface()
+void Surface::Destroy()
 {
-    // TODO: handle different formats
-    //delete[] (uint16_t*)pixels;
+    free(pixels);
 }
 
-void* Surface::GetPixels()
+void* BaseSurface::GetPixels()
 {
     return pixels;
 }
 
-uint32_t Surface::GetPitch()
+uint32_t BaseSurface::GetPitch()
 {
     return pitch;
 }
 
-uint16_t Surface::GetFormat()
+uint16_t BaseSurface::GetFormat()
 {
     return format;
 }
 
-uint32_t Surface::GetWidth()
+uint32_t BaseSurface::GetWidth()
 {
     return w;
 }
 
-uint32_t Surface::GetHeight()
+uint32_t BaseSurface::GetHeight()
 {
     return h;
 }
 
+/*
 Surface* Surface::ConvertTo(uint16_t format)
 {
     Surface* created = nullptr;
 
     created = new Surface(pixels, pitch, format);
     // TODO: implement support for different formats
-    /*if (this->format != format)
+    if (this->format != format)
     {
         void* converted = new
         created = new Surface();
@@ -86,11 +78,12 @@ Surface* Surface::ConvertTo(uint16_t format)
     else
     {
         created = new Surface(pixels, pitch, format);
-    }*/
+    }
     return created;
 }
+*/
 
-void Surface::Clear(uint32_t color)
+void BaseSurface::Clear(uint32_t color)
 {
     uint8_t depth = GetDepth((PixelFormat)format);
     switch (depth)
@@ -105,7 +98,7 @@ void Surface::Clear(uint32_t color)
         break;
     }
 }
-
+/*
 void Surface::Blit(Surface* dest, IntRect* destRect, IntRect* srcRect)
 {
     bool didConvert = false;
@@ -132,3 +125,5 @@ void Surface::Blit(Surface* dest, IntRect* destRect, IntRect* srcRect)
         delete converted;
     }
 }
+*/
+

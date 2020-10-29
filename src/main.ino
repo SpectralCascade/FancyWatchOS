@@ -16,18 +16,24 @@ bool powerIRQ = false;
 
 void setup()
 {
+
+#ifdef LOG_SERIAL
+    Serial.begin(9600);
+#endif
+
     // Setup the event queue
     // Maximum number of events allowed per frame. Pretty high to deal with all the event types we could get.
     events = xQueueCreate(256, sizeof(Event));
 
     // Initialise the watch
     watch = new Watch(TTGOClass::getWatch(), events);
-    watch->Init();
 
     InitInterrupts(watch->driver);
 
     // Init display
     watch->display.Enable();
+    watch->display.GetTFT()->setTextColor(TFT_GREEN);
+
 }
 
 void InitInterrupts(TTGOClass* device)
@@ -43,6 +49,11 @@ void InitInterrupts(TTGOClass* device)
 
 void loop()
 {
+    // Handle interrupts
+
+    //
+    // Power
+    //
     if (powerIRQ)
     {
         AXP20X_Class* power = watch->driver->power;
@@ -76,7 +87,9 @@ void loop()
         powerIRQ = false;
     }
 
+    // Update the watch runtime
     watch->Update();
+
 }
 
 

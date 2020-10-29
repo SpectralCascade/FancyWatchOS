@@ -1,16 +1,29 @@
 #include "config.h"
 #include "watch.h"
+#include "utils.h"
+#include "display.h"
 
-void Watch::Init()
+Watch::Watch(TTGOClass* device, QueueHandle_t eventQueue)
 {
+    // Initialise the watch
+    driver = device;
     driver->begin();
-    driver->tft->setTextColor(TFT_GREEN);
-    timer.Start();
+    // Setup display
+    events = eventQueue;
+    display.Init(driver);
+}
+
+Watch::~Watch()
+{
+    display.Destroy();
 }
 
 void Watch::Update()
 {
     uint32_t startTicks = timer.GetTicks();
+
+    // Should the watch deep sleep at the end of this update?
+    bool deepSleep = false;
 
     // Should the display be updated?
     bool updateDisplay = false;
@@ -30,19 +43,36 @@ void Watch::Update()
             else
             {
                 display.Enable();
-                updateDisplay = true;
             }
             break;
         default:
             break;
         }
     }
+    updateDisplay = true;
 
     // Render to the display
-    if (updateDisplay && display.IsEnabled())
+    if (!deepSleep && updateDisplay && display.IsEnabled())
     {
-        // Render to display
-        //display.RenderPresent();
+        if (timer.GetTicks() > 3000)
+        {
+            display.Clear(TFT_RED);
+            timer.Start();
+        }
+        else if (timer.GetTicks() > 2000)
+        {
+            display.Clear(TFT_BLUE);
+        }
+        else
+        {
+            display.Clear(TFT_WHITE);
+        }
+        //display->Clear(TFT_WHITE);
+
+        display.RenderPresent();
+
+        //driver->tft->setCursor(0, 0);
+        //driver->tft->printf("FPS: %f\n", 1.0f / clock.GetDeltaTime());
     }
 
     // Update at specified frame rate
@@ -54,4 +84,15 @@ void Watch::Update()
     }
 
     clock.Update((float)delta / 1000.0f);
+
+    if (deepSleep)
+    {
+        display.Disable();
+
+        timer.Pause();
+
+        esp_sleep_enable_ext1_wakeup(GPIO_SEL_35, ESP_EXT1_WAKEUP_ALL_LOW);
+
+        esp_deep_sleep_start();
+    }
 }

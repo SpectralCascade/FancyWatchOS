@@ -35,18 +35,10 @@ struct Event
 class Watch
 {
 public:
-    Watch(TTGOClass* device, QueueHandle_t eventQueue) : display(device), driver(device), events(eventQueue)
-    {
-        // Initialize the watch
-        // Start timing for frame rate control
-        //timer.Start();
-    }
-
-    void Init();
+    Watch(TTGOClass* device, QueueHandle_t eventQueue);
+    ~Watch();
 
     void Update();
-
-    void ShowDebugInfo();
 
     Display display;
 
@@ -58,7 +50,6 @@ private:
     // Timing and frame rate management
     Clock clock;
     Timer timer;
-    uint32_t fps = 30;
     uint32_t frameDelayMS = 33;
 
 };

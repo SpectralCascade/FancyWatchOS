@@ -3,20 +3,21 @@
 
 #include <Arduino.h>
 #include "color.h"
+#include "surface.h"
 
 // Forward declarations
 class TTGOClass;
 class TFT_eSPI;
-class Surface;
+
+// Global surface for rendering
+extern Surface gRenderBuffer;
 
 /// TFT display API
 class Display
 {
 public:
-    Display(TTGOClass* watch);
-
-    // Call this after the constructor
-    void Init();
+    void Init(TTGOClass* watch);
+    void Destroy();
 
     void Enable();
     void Disable();
@@ -27,18 +28,15 @@ public:
     bool IsEnabled();
 
     // Clears the current display with a given color.
-    void Clear(Color color);
+    void Clear(uint16_t color);
 
-    // Renders the surface buffer.
+    // Draws the render buffer to the display.
     void RenderPresent();
 
     // Returns a pointer to the TFT_eSPI instance.
     TFT_eSPI* GetTFT();
 
 private:
-    // Buffer for rendering to the TFT.
-    Surface* renderBuffer;
-
     // Reference to the device implementation
     TTGOClass* device;
 
