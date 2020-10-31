@@ -154,6 +154,8 @@
 			<Add directory="C:/Users/2013b/.platformio/packages/tool-unity" />
 		</Compiler>
 		<Unit filename="platformio.ini" />
+		<Unit filename="src/Apps/homestead.cpp" />
+		<Unit filename="src/Apps/homestead.h" />
 		<Unit filename="src/Arduino_ST7789_Fast.cpp" />
 		<Unit filename="src/Arduino_ST7789_Fast.h" />
 		<Unit filename="src/app.cpp" />
@@ -166,6 +168,8 @@
 		<Unit filename="src/kernel.cpp" />
 		<Unit filename="src/kernel.h" />
 		<Unit filename="src/main.ino" />
+		<Unit filename="src/renderer.cpp" />
+		<Unit filename="src/renderer.h" />
 		<Unit filename="src/surface.cpp" />
 		<Unit filename="src/surface.h" />
 		<Unit filename="src/time.cpp" />
