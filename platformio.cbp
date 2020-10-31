@@ -154,11 +154,17 @@
 			<Add directory="C:/Users/2013b/.platformio/packages/tool-unity" />
 		</Compiler>
 		<Unit filename="platformio.ini" />
+		<Unit filename="src/Arduino_ST7789_Fast.cpp" />
+		<Unit filename="src/Arduino_ST7789_Fast.h" />
+		<Unit filename="src/app.cpp" />
+		<Unit filename="src/app.h" />
 		<Unit filename="src/color.cpp" />
 		<Unit filename="src/color.h" />
 		<Unit filename="src/config.h" />
 		<Unit filename="src/display.cpp" />
 		<Unit filename="src/display.h" />
+		<Unit filename="src/kernel.cpp" />
+		<Unit filename="src/kernel.h" />
 		<Unit filename="src/main.ino" />
 		<Unit filename="src/surface.cpp" />
 		<Unit filename="src/surface.h" />
@@ -166,8 +172,6 @@
 		<Unit filename="src/time.h" />
 		<Unit filename="src/utils.cpp" />
 		<Unit filename="src/utils.h" />
-		<Unit filename="src/watch.cpp" />
-		<Unit filename="src/watch.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

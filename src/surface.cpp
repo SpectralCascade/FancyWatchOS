@@ -5,14 +5,14 @@ uint8_t GetDepth(PixelFormat format)
 {
     switch (format)
     {
-    case PF_RGB565:
-    case PF_RGBA4444:
-        return 2;
     case PF_RGBA5658:
         return 3;
     case PF_RGBA8888:
-    default:
         return 4;
+    case PF_RGB565:
+    case PF_RGBA4444:
+    default:
+        return 2;
     }
 }
 
@@ -63,6 +63,17 @@ uint32_t BaseSurface::GetHeight()
     return h;
 }
 
+void BaseSurface::Replicate(BaseSurface* other)
+{
+    if (w == other->w && h == other->h && format == other->format && pixels && other->pixels)
+    {
+        for (unsigned int i = 0, counti = pitch * h; i < counti; i += 2)
+        {
+            ((uint16_t*)pixels)[i] = ((uint16_t*)other->pixels)[i];
+        }
+    }
+}
+
 /*
 Surface* Surface::ConvertTo(uint16_t format)
 {
@@ -91,9 +102,10 @@ void BaseSurface::Clear(uint32_t color)
     default:
         // Default to 16-bit.
         // TODO: support other formats
-        for (uint32_t i = 0, counti = w * h; i < counti; i++)
+        for (uint32_t i = 0, counti = pitch * h; i < counti; i += 2)
         {
-            ((uint16_t*)pixels)[i] = (uint16_t)color;
+            ((uint8_t*)pixels)[i + 1] = (uint8_t)(color & 0x000000FF);
+            ((uint8_t*)pixels)[i] = (uint8_t)(color >> 8);
         }
         break;
     }

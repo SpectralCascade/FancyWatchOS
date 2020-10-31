@@ -43,6 +43,9 @@ public:
     // Fills the entire surface with a given color.
     void Clear(uint32_t color);
 
+    // Copies the pixels of another surface of the same dimensions and format.
+    void Replicate(BaseSurface* other);
+
     // TODO: Makes a copy of this surface in the specified format.
     //Surface* ConvertTo(uint16_t format);
 
