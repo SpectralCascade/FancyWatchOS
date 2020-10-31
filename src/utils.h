@@ -8,7 +8,7 @@ struct IntRect
     int x, y, w, h;
 };
 
-//#define LOG_OVERLAY 1
+#define LOG_SERIAL 1
 
 #if LOG_OVERLAY
 #define Log(...) TTGOClass::getWatch()->tft->printf(__VA_ARGS__); TTGOClass::getWatch()->tft->printf("\n")
@@ -21,6 +21,7 @@ struct IntRect
 #define LogInfo(...) TTGOClass::getWatch()->tft->setTextColor(TFT_GREEN); Log(__VA_ARGS__)
 #define LogWarn(...) TTGOClass::getWatch()->tft->setTextColor(TFT_ORANGE); Log(__VA_ARGS__)
 #define LogError(...) TTGOClass::getWatch()->tft->setTextColor(TFT_RED); Log(__VA_ARGS__)
+#define LogMark(fn, ln) Log("\nReached mark at line %d in file %s.\n", ln, fn)
 
 /// Clamps between a range
 float Clamp(float n, float min = 0, float max = 1);

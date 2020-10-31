@@ -17,8 +17,10 @@ Kernel::Kernel(TTGOClass* device, QueueHandle_t eventQueue)
 
     renderTimer.Start();
 
+    LogMark(__FILE__, __LINE__);
+
     // Start up with the default app.
-    //StartApp(new Homestead());
+    StartApp(new Homestead());
 
 }
 
@@ -29,6 +31,8 @@ Kernel::~Kernel()
 
 void Kernel::Update()
 {
+    LogMark(__FILE__, __LINE__);
+
     // Should the watch deep sleep at the end of this update?
     bool deepSleep = false;
 
@@ -101,6 +105,8 @@ int Kernel::StartApp(Application* app, bool foreground, int argc, char* argv[])
         {
             if (taskHandles[i] == nullptr)
             {
+                Log("Starting application[%d]...\n", i);
+
                 // Set ID to match the task handle index.
                 id = i;
 
@@ -120,17 +126,20 @@ int Kernel::StartApp(Application* app, bool foreground, int argc, char* argv[])
                 }
                 app->_argc = argc;
                 app->_argv = new char*[argc];
+                app->_id = id;
 
                 for (uint32_t j = 0; j < argc; j++)
                 {
                     app->_argv[j] = new char[strlen(argv[j]) + 1];
                     strcpy(app->_argv[j], argv[j]);
                 }
+                app->Init(this);
 
                 // Now create the actual task for the app.
                 xTaskCreate(
                     [] (void* task) {
                         ((Application*)task)->Main(((Application*)task)->_argc, ((Application*)task)->_argv);
+                        ((Application*)task)->Cleanup();
                     },
                     name,
                     MAX_APP_STACK,
@@ -138,6 +147,16 @@ int Kernel::StartApp(Application* app, bool foreground, int argc, char* argv[])
                     tskIDLE_PRIORITY,
                     &taskHandles[i]
                 );
+
+                if (taskHandles[i])
+                {
+                    Log("Application[%d] started.\n", i);
+                }
+                else
+                {
+                    LogError("Failed to start task for application[%d]!\n", i);
+                }
+
                 break;
             }
         }

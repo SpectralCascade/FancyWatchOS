@@ -35,6 +35,11 @@ void Application::Init(Kernel* kernel)
     watch = kernel;
 }
 
+void Application::Cleanup()
+{
+    watch->KillApp(_id, true);
+}
+
 Renderer* Application::GetRenderer()
 {
     if (_renderer == nullptr)

@@ -36,9 +36,14 @@ protected:
 private:
     void Init(Kernel* kernel);
 
+    void Cleanup();
+
     // Main arguments
     int _argc = 0;
     char** _argv = nullptr;
+
+    // This application's runtime task ID.
+    int _id = -1;
 
     // The one and only renderer associated with this application.
     Renderer* _renderer = nullptr;
