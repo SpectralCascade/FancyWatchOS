@@ -1,16 +1,7 @@
 #include "app.h"
 
-Application::~Application()
+void Application::OnStart(int argc, char* argv[])
 {
-    if (_argv != nullptr)
-    {
-        for (uint32_t j = 0; j < _argc; j++)
-        {
-            delete[] _argv[j];
-        }
-        delete[] _argv;
-    }
-    _argc = 0;
 }
 
 void Application::OnStop()
@@ -30,21 +21,14 @@ bool Application::IsForeground()
     return _foreground;
 }
 
-void Application::Init(Kernel* kernel)
+void Application::HandleEvent(Event& e)
 {
-    watch = kernel;
 }
 
-void Application::Cleanup()
+void Application::Update()
 {
-    watch->KillApp(_id, true);
 }
 
-Renderer* Application::GetRenderer()
+void Application::Render(Display& display)
 {
-    if (_renderer == nullptr)
-    {
-        _renderer = new Renderer(watch);
-    }
-    return _renderer;
 }

@@ -3,7 +3,6 @@
 
 #include "display.h"
 #include "time.h"
-#include "renderer.h"
 #include <functional>
 
 // Note: MAX_APPS should never be more than 256
@@ -73,6 +72,10 @@ public:
     // Returns the application that has been killed so it can be freed from memory if you wish.
     Application* KillApp(int id, bool force = false);
 
+    // Causes the watch to enter deep-sleep power saving mode at the end of the next update.
+    // Effectively the same as shutting down, but the RTC memory is maintained.
+    void DeepSleep();
+
     // Don't call this.
     Display* GetDisplay();
 
@@ -80,23 +83,20 @@ public:
     TTGOClass* GetDriver();
 
 private:
-    void SuspendAllApps();
-    void ResumeAllApps();
-
     Display display;
     TTGOClass* driver;
 
     // Input event queue.
     QueueHandle_t events;
 
-    // All running applications, up to MAX_APPS.
+    // All running applications, up to MAX_APPS as a stack.
     Application* apps[MAX_APPS] = { nullptr };
 
-    // Corresponding task handles for each app.
-    TaskHandle_t taskHandles[MAX_APPS] = { nullptr };
+    // The number of apps that are currently running.
+    uint16_t totalApps = 0;
 
-    // The app that is currently in the foreground.
-    uint8_t mainApp = 0;
+    // Should the watch sleep at the end of the next update?
+    bool deepSleep = false;
 
     // Timing and frame rate management
     Timer renderTimer;

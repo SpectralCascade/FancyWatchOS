@@ -7,6 +7,7 @@
 #include "display.h"
 #include "kernel.h"
 #include "utils.h"
+#include "Apps/homestead.h"
 
 // The FancyWatchOS runtime that coordinates I/O and applications.
 Kernel* kernel;
@@ -34,6 +35,11 @@ void setup()
     // Init display
     kernel->GetDisplay()->Enable();
     kernel->GetDisplay()->GetTFT()->setTextColor(TFT_GREEN);
+
+    Log("Setup kernel.");
+
+    // Finally, start the main app.
+    kernel->StartApp(new Homestead());
 
 }
 
@@ -64,22 +70,18 @@ void loop()
         if (power->isVbusPlugInIRQ())
         {
             e.type = EVENT_POWER_CONNECT;
-            Log("Power connect!");
         }
         else if (power->isVbusRemoveIRQ())
         {
             e.type = EVENT_POWER_DISCONNECT;
-            Log("Power disconnect!");
         }
         else if (power->isPEKShortPressIRQ())
         {
             e.type = EVENT_POWER_BUTTON;
-            Log("Power button!");
         }
         else
         {
             e.type = EVENT_POWER_CHARGE;
-            Log("Power charge!");
         }
         power->clearIRQ();
         // Add the event to the queue

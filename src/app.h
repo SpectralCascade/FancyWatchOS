@@ -8,8 +8,8 @@ class Application
 public:
     friend class Kernel;
 
-    // Clean up command arguments.
-    virtual ~Application();
+    // Called when the app is initialised.
+    virtual void OnStart(int argc, char* argv[]);
 
     // Called when the app is killed.
     virtual void OnStop();
@@ -20,33 +20,25 @@ public:
     // Called when the app should run in the background.
     virtual void OnEnterBackground();
 
-    // The app Main() function. Must be implemented.
-    virtual int Main(int argc, char* argv[]) = 0;
+    // Handle an input event.
+    virtual void HandleEvent(Event& e);
+
+    // Update logic once per frame.
+    virtual void Update();
+
+    // Render stuff to the display.
+    virtual void Render(Display& display);
 
     // Is this app running in the foreground?
     bool IsForeground();
 
 protected:
-    // Returns the renderer instance, or creates one if it doesn't exist already.
-    Renderer* GetRenderer();
-
     // Reference to the watch runtime itself.
     Kernel* watch;
 
 private:
-    void Init(Kernel* kernel);
-
-    void Cleanup();
-
-    // Main arguments
-    int _argc = 0;
-    char** _argv = nullptr;
-
     // This application's runtime task ID.
     int _id = -1;
-
-    // The one and only renderer associated with this application.
-    Renderer* _renderer = nullptr;
 
     // Returned by IsForeground().
     bool _foreground = false;

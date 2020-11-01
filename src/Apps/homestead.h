@@ -6,7 +6,9 @@
 class Homestead : public Application
 {
 public:
-    int Main(int argc, char* argv[]);
+    void OnStart(int argc, char* argv[]);
+
+    void Render(Display& display);
 
 private:
     Timer timer;
