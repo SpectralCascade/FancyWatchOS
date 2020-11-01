@@ -168,8 +168,6 @@
 		<Unit filename="src/kernel.cpp" />
 		<Unit filename="src/kernel.h" />
 		<Unit filename="src/main.ino" />
-		<Unit filename="src/renderer.cpp" />
-		<Unit filename="src/renderer.h" />
 		<Unit filename="src/surface.cpp" />
 		<Unit filename="src/surface.h" />
 		<Unit filename="src/time.cpp" />

@@ -8,7 +8,8 @@ struct IntRect
     int x, y, w, h;
 };
 
-#define LOG_SERIAL 1
+//#define LOG_SERIAL 1
+//#define LOG_OVERLAY 1
 
 #if LOG_OVERLAY
 #define Log(...) TTGOClass::getWatch()->tft->printf(__VA_ARGS__); TTGOClass::getWatch()->tft->printf("\n")
