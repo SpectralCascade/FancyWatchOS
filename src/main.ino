@@ -16,6 +16,11 @@ Kernel* kernel;
 QueueHandle_t events;
 bool powerIRQ = false;
 bool rtcIRQ = false;
+bool touchIRQ = false;
+
+// The default library only supports up to 2 touches at a time, though in theory it could support more.
+TouchEvent lastTouches[2] = { { 0xFF, -1, -1 }, { 0xFF, -1, -1 } };
+uint8_t lastNumTouches = 0;
 
 void setup()
 {
@@ -64,6 +69,12 @@ void InitInterrupts(TTGOClass* device)
     // Initialise RTC based on compile time.
     device->rtc->check();
 
+    //
+    // Touch interrupts
+    //
+    pinMode(TOUCH_INT, INPUT_PULLUP);
+    attachInterrupt(TOUCH_INT, [] { touchIRQ = true; }, FALLING);
+
 }
 
 void loop()
@@ -107,14 +118,17 @@ void loop()
         detachInterrupt(RTC_INT);
 
         Event e;
+        // TODO: Handle both timer and alarm at same time?
         if (rtc->alarmActive())
         {
             // What to do here? Reset it?
             //rtc->resetAlarm();
+            e.type = EVENT_RTC_ALARM;
         }
         if (rtc->isTimerEnable() && rtc->isTimerActive())
         {
             // What to do here? Clear it?
+            e.type = EVENT_RTC_TIMER;
         }
 
         // Convert RTC date to POD type.
@@ -126,10 +140,55 @@ void loop()
         e.rtc.month = date.month;
         e.rtc.year = date.year;
 
-        // Add the event to the queue
         xQueueSend(events, &e, portMAX_DELAY);
 
         rtcIRQ = false;
+    }
+    if (touchIRQ)
+    {
+        // TODO: handle multiple touch interrupts in a single frame?
+        FT5206_Class* touch = kernel->GetDriver()->touch;
+
+        uint8_t touches = touch->touched();
+        Event e[2];
+        for (uint8_t i = 0; i < touches; i++)
+        {
+            // Grab touch data
+            e[i].touch.touchID = i;
+            TP_Point point = touch->getPoint(i);
+            e[i].touch.x = point.x;
+            e[i].touch.y = point.y;
+
+            // Check which type of touch event this is.
+            if (i >= lastNumTouches)
+            {
+                e[i].type = EVENT_TOUCH_BEGIN;
+                xQueueSend(events, &e[i], portMAX_DELAY);
+            }
+            else if (e[i].touch.x != lastTouches[i].x || e[i].touch.y != lastTouches[i].y)
+            {
+                e[i].type = EVENT_TOUCH_CHANGE;
+                xQueueSend(events, &e[i], portMAX_DELAY);
+            }
+
+            lastTouches[i] = e[i].touch;
+        }
+
+        // Touch end event if there are less touches.
+        for (uint8_t i = lastNumTouches; i > touches; i--)
+        {
+            uint8_t index = i - 1;
+            e[index].type = EVENT_TOUCH_END;
+            e[index].touch = lastTouches[index];
+            xQueueSend(events, &e[index], portMAX_DELAY);
+        }
+
+        // Only set touchIRQ to false if all touches are released.
+        if (!touches)
+        {
+            touchIRQ = false;
+        }
+        lastNumTouches = touches;
     }
 
     // Update the watch runtime

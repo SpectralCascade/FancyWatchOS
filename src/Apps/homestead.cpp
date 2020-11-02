@@ -15,6 +15,26 @@ void Homestead::OnStart(int argc, char* argv[])
     }
 }
 
+void Homestead::HandleEvent(Event& e)
+{
+    switch (e.type)
+    {
+    case EVENT_TOUCH_BEGIN:
+        fingers[e.touch.touchID] = true;
+    case EVENT_TOUCH_CHANGE:
+        touches[e.touch.touchID].DrawFilled(*watch->GetDisplay(), TFT_BLACK);
+        touches[e.touch.touchID].x = e.touch.x;
+        touches[e.touch.touchID].y = e.touch.y;
+        break;
+    case EVENT_TOUCH_END:
+        touches[e.touch.touchID].DrawFilled(*watch->GetDisplay(), TFT_BLACK);
+        fingers[e.touch.touchID] = false;
+        break;
+    default:
+        break;
+    }
+}
+
 void Homestead::Render(Display& display)
 {
     RTC_Date date = watch->GetDriver()->rtc->getDateTime();
@@ -30,5 +50,13 @@ void Homestead::Render(Display& display)
         display.GetTFT()->setTextSize(3);
         textArea.DrawFilled(display, TFT_BLACK);
         display.GetTFT()->drawString(text, textArea.x, textArea.y, 4);
+    }
+
+    for (uint8_t i = 0; i < 2; i++)
+    {
+        if (fingers[i])
+        {
+            touches[i].DrawFilled(display, i ? TFT_GREEN : TFT_BLUE);
+        }
     }
 }

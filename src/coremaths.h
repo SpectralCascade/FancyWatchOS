@@ -23,6 +23,8 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
+#include <Arduino.h>
+
 class Display;
 
 const float pi = 3.1415927;
@@ -35,6 +37,11 @@ inline float DegToRad(float angle)
 {
     return (pi / 180.0f) * angle;
 }
+
+struct IntRect
+{
+    int x, y, w, h;
+};
 
 struct Vector2
 {
@@ -151,6 +158,8 @@ struct Circle
 
     void Draw(Display& display);
     void Draw(Display& display, uint16_t color);
+    void DrawFilled(Display& display);
+    void DrawFilled(Display& display, uint16_t color);
 
     /// Whether or not this rect is intersecting a circle
     bool Intersects(Circle circle);

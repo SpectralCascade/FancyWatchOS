@@ -3,11 +3,6 @@
 
 #include "config.h"
 
-struct IntRect
-{
-    int x, y, w, h;
-};
-
 //#define LOG_SERIAL 1
 //#define LOG_OVERLAY 1
 

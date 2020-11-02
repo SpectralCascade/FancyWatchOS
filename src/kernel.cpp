@@ -35,6 +35,7 @@ void Kernel::Update()
             if (display.IsEnabled())
             {
                 display.Disable();
+                driver->touchToMonitor();
             }
             else
             {
@@ -74,16 +75,18 @@ void Kernel::Update()
             }
         }
 
-        uint32_t frameWaitTime = DISPLAY_REFRESH_DELAY - renderTimer.GetTicks();
-        if (frameWaitTime <= DISPLAY_REFRESH_DELAY)
-        {
-            // Now delay until the next refresh
-            vTaskDelay(frameWaitTime);
-        }
-
-        // Restart the timer.
-        renderTimer.Start();
     }
+
+    // Always delay to save some processing time no matter if the display is active.
+    uint32_t frameWaitTime = DISPLAY_REFRESH_DELAY - renderTimer.GetTicks();
+    if (frameWaitTime <= DISPLAY_REFRESH_DELAY)
+    {
+        // Now delay until the next refresh
+        vTaskDelay(frameWaitTime);
+    }
+
+    // Restart the timer.
+    renderTimer.Start();
 
     if (deepSleep)
     {

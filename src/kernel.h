@@ -29,7 +29,12 @@ enum EventType
     EVENT_POWER_CONNECT = 1,
     EVENT_POWER_CHARGE = 2,
     EVENT_POWER_DISCONNECT = 3,
-    EVENT_POWER_BUTTON = 4
+    EVENT_POWER_BUTTON = 4,
+    EVENT_RTC_ALARM = 5,
+    EVENT_RTC_TIMER = 6,
+    EVENT_TOUCH_BEGIN = 7,
+    EVENT_TOUCH_END = 8,
+    EVENT_TOUCH_CHANGE = 9
 };
 
 // All event groups
@@ -46,6 +51,12 @@ struct RealtimeClockEvent
     uint8_t month;
     uint16_t year;
 };
+struct TouchEvent
+{
+    uint8_t touchID;
+    int16_t x;
+    int16_t y;
+};
 
 // Structure containing a union defining different types of events with their meta data.
 struct Event
@@ -54,6 +65,7 @@ struct Event
     union {
         PowerEvent power;
         RealtimeClockEvent rtc;
+        TouchEvent touch;
     };
 };
 

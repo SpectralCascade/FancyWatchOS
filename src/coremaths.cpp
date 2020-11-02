@@ -254,6 +254,16 @@ void Circle::Draw(Display& display, uint16_t color)
     display.GetTFT()->drawCircle((int)x, (int)y, (int)r, color);
 }
 
+void Circle::DrawFilled(Display& display)
+{
+    DrawFilled(display, display.GetDrawColor());
+}
+
+void Circle::DrawFilled(Display& display, uint16_t color)
+{
+    display.GetTFT()->fillCircle((int)x, (int)y, (int)r, color);
+}
+
 bool Circle::Intersects(Circle circle)
 {
     float totalRadius = (r * circle.r);

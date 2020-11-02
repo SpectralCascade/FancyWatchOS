@@ -1,20 +1,25 @@
 #ifndef GUI_H
 #define GUI_H
 
-class Rect
+#include "coremaths.h"
+#include "kernel.h"
 
 class Widget
 {
 public:
+    Vector2 pos = Vector2::Zero;
 
-private:
+    // Used for relative positions.
+    Widget* parent = nullptr;
 
 };
 
 class Button : public Widget
 {
 public:
-    void Update(Event& e);
+    void HandleEvent(Event& e);
+
+    void Render(Display& display);
 
 };
 
