@@ -163,8 +163,11 @@
 		<Unit filename="src/color.cpp" />
 		<Unit filename="src/color.h" />
 		<Unit filename="src/config.h" />
+		<Unit filename="src/coremaths.cpp" />
+		<Unit filename="src/coremaths.h" />
 		<Unit filename="src/display.cpp" />
 		<Unit filename="src/display.h" />
+		<Unit filename="src/gui.h" />
 		<Unit filename="src/kernel.cpp" />
 		<Unit filename="src/kernel.h" />
 		<Unit filename="src/main.ino" />

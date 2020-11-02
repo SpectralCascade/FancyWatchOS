@@ -36,6 +36,12 @@ public:
     // Clears the current display with a given color.
     void Clear(uint16_t color);
 
+    // Set the default draw colour.
+    void SetDrawColor(uint16_t color);
+
+    // Return the default draw color.
+    uint16_t GetDrawColor();
+
     // Draws the render buffer to the display.
     void RenderPresent();
 
@@ -51,6 +57,16 @@ private:
 
     // The buffer used for rendering.
     Surface renderBuffer;
+
+    // TODO: tiles for optimised rendering
+    // 100 24x24 tiles to break up the data sent to the screen, for efficiency.
+    Surface tiles[10 * 10];
+
+    // Which tiles have been touched?
+    bool touched[10 * 10];
+
+    // Default color
+    uint16_t drawColor = TFT_BLACK;
 
 #ifdef RENDER_DMA
     // The extra buffer used for DMA rendering

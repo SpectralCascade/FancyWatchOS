@@ -76,6 +76,16 @@ void Display::Clear(uint16_t color)
     renderBuffer.Clear(color);
 }
 
+void Display::SetDrawColor(uint16_t color)
+{
+    drawColor = color;
+}
+
+uint16_t Display::GetDrawColor()
+{
+    return drawColor;
+}
+
 void Display::RenderPresent()
 {
 #ifdef RENDER_DMA

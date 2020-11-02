@@ -37,6 +37,15 @@ struct PowerEvent
 {
     // TODO: useful power data
 };
+struct RealtimeClockEvent
+{
+    uint8_t second;
+    uint8_t minute;
+    uint8_t hour;
+    uint8_t day;
+    uint8_t month;
+    uint16_t year;
+};
 
 // Structure containing a union defining different types of events with their meta data.
 struct Event
@@ -44,6 +53,7 @@ struct Event
     int32_t type;
     union {
         PowerEvent power;
+        RealtimeClockEvent rtc;
     };
 };
 

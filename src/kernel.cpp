@@ -74,9 +74,6 @@ void Kernel::Update()
             }
         }
 
-        // Refresh the screen if necessary.
-        display.RenderPresent();
-
         uint32_t frameWaitTime = DISPLAY_REFRESH_DELAY - renderTimer.GetTicks();
         if (frameWaitTime <= DISPLAY_REFRESH_DELAY)
         {

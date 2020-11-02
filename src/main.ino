@@ -15,6 +15,7 @@ Kernel* kernel;
 // Events queue
 QueueHandle_t events;
 bool powerIRQ = false;
+bool rtcIRQ = false;
 
 void setup()
 {
@@ -34,7 +35,7 @@ void setup()
 
     // Init display
     kernel->GetDisplay()->Enable();
-    kernel->GetDisplay()->GetTFT()->setTextColor(TFT_GREEN);
+    kernel->GetDisplay()->GetTFT()->setTextColor(TFT_WHITE);
 
     Log("Setup kernel.");
 
@@ -52,6 +53,17 @@ void InitInterrupts(TTGOClass* device)
     attachInterrupt(AXP202_INT, [] { powerIRQ = true; }, FALLING);
     device->power->enableIRQ(AXP202_PEK_SHORTPRESS_IRQ | AXP202_VBUS_REMOVED_IRQ | AXP202_VBUS_CONNECT_IRQ | AXP202_CHARGING_IRQ, true);
     device->power->clearIRQ();
+
+    //
+    // RTC interrupts
+    //
+    pinMode(RTC_INT, INPUT_PULLUP);
+    attachInterrupt(RTC_INT, [] { rtcIRQ = true; }, FALLING);
+    device->rtc->disableAlarm();
+
+    // Initialise RTC based on compile time.
+    device->rtc->check();
+
 }
 
 void loop()
@@ -88,6 +100,36 @@ void loop()
         xQueueSend(events, &e, portMAX_DELAY);
 
         powerIRQ = false;
+    }
+    if (rtcIRQ)
+    {
+        PCF8563_Class* rtc = kernel->GetDriver()->rtc;
+        detachInterrupt(RTC_INT);
+
+        Event e;
+        if (rtc->alarmActive())
+        {
+            // What to do here? Reset it?
+            //rtc->resetAlarm();
+        }
+        if (rtc->isTimerEnable() && rtc->isTimerActive())
+        {
+            // What to do here? Clear it?
+        }
+
+        // Convert RTC date to POD type.
+        RTC_Date date = rtc->getDateTime();
+        e.rtc.second = date.second;
+        e.rtc.minute = date.minute;
+        e.rtc.hour = date.hour;
+        e.rtc.day = date.day;
+        e.rtc.month = date.month;
+        e.rtc.year = date.year;
+
+        // Add the event to the queue
+        xQueueSend(events, &e, portMAX_DELAY);
+
+        rtcIRQ = false;
     }
 
     // Update the watch runtime

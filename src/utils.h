@@ -14,7 +14,7 @@ struct IntRect
 #if LOG_OVERLAY
 #define Log(...) TTGOClass::getWatch()->tft->printf(__VA_ARGS__); TTGOClass::getWatch()->tft->printf("\n")
 #elif LOG_SERIAL
-#define Log(...) Serial.printf(__VA_ARGS__)
+#define Log(...) Serial.printf(__VA_ARGS__); Serial.printf("\n")
 #else
 #define Log(...)
 #endif

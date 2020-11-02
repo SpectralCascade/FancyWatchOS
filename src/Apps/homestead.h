@@ -2,6 +2,7 @@
 #define HOMESTEAD_H
 
 #include "../app.h"
+#include "../coremaths.h"
 
 class Homestead : public Application
 {
@@ -12,6 +13,9 @@ public:
 
 private:
     Timer timer;
+
+    uint8_t lastMinute = 0;
+    Rect textArea;
 
 };
 
