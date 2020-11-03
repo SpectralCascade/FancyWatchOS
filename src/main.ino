@@ -98,6 +98,7 @@ void InitInterrupts(TTGOClass* device)
 void loop()
 {
     // Handle interrupts and pass to the events queue.
+    bool active = kernel->IsActive();
 
     //
     // Power
@@ -134,6 +135,10 @@ void loop()
 
         powerIRQ = false;
     }
+
+    //
+    // RTC
+    //
     if (rtcIRQ)
     {
         PCF8563_Class* rtc = kernel->GetDriver()->rtc;
@@ -166,54 +171,66 @@ void loop()
 
         rtcIRQ = false;
     }
+
+    //
+    // Touches
+    //
     if (touchIRQ)
     {
-        // TODO: handle multiple touch interrupts in a single frame?
-        FT5206_Class* touch = kernel->GetDriver()->touch;
-
-        uint8_t touches = touch->touched();
-        Event e[2];
-        for (uint8_t i = 0; i < touches; i++)
-        {
-            // Grab touch data
-            e[i].touch.touchID = i;
-            TP_Point point = touch->getPoint(i);
-            e[i].touch.x = point.x;
-            e[i].touch.y = point.y;
-
-            // Check which type of touch event this is.
-            if (i >= lastNumTouches)
-            {
-                e[i].type = EVENT_TOUCH_BEGIN;
-                xQueueSend(events, &e[i], portMAX_DELAY);
-            }
-            else if (e[i].touch.x != lastTouches[i].x || e[i].touch.y != lastTouches[i].y)
-            {
-                e[i].type = EVENT_TOUCH_CHANGE;
-                xQueueSend(events, &e[i], portMAX_DELAY);
-            }
-
-            lastTouches[i] = e[i].touch;
-        }
-
-        // Touch end event if there are less touches.
-        for (uint8_t i = lastNumTouches; i > touches; i--)
-        {
-            uint8_t index = i - 1;
-            e[index].type = EVENT_TOUCH_END;
-            e[index].touch = lastTouches[index];
-            xQueueSend(events, &e[index], portMAX_DELAY);
-        }
-
-        // Only set touchIRQ to false if all touches are released.
-        if (!touches)
+        if (!(kernel->enabledEventsMask & (EVENT_TOUCH_BEGIN | EVENT_TOUCH_CHANGE | EVENT_TOUCH_END)))
         {
             touchIRQ = false;
         }
-        lastNumTouches = touches;
+        else
+        {
+            // TODO: handle multiple touch interrupts in a single frame?
+            FT5206_Class* touch = kernel->GetDriver()->touch;
+
+            uint8_t touches = touch->touched();
+            Event e[2];
+            for (uint8_t i = 0; i < touches; i++)
+            {
+                // Grab touch data
+                e[i].touch.touchID = i;
+                TP_Point point = touch->getPoint(i);
+                e[i].touch.x = point.x;
+                e[i].touch.y = point.y;
+
+                // Check which type of touch event this is.
+                if (i >= lastNumTouches)
+                {
+                    e[i].type = EVENT_TOUCH_BEGIN;
+                    xQueueSend(events, &e[i], portMAX_DELAY);
+                }
+                else if (e[i].touch.x != lastTouches[i].x || e[i].touch.y != lastTouches[i].y)
+                {
+                    e[i].type = EVENT_TOUCH_CHANGE;
+                    xQueueSend(events, &e[i], portMAX_DELAY);
+                }
+
+                lastTouches[i] = e[i].touch;
+            }
+
+            // Touch end event if there are less touches.
+            for (uint8_t i = lastNumTouches; i > touches; i--)
+            {
+                uint8_t index = i - 1;
+                e[index].type = EVENT_TOUCH_END;
+                e[index].touch = lastTouches[index];
+                xQueueSend(events, &e[index], portMAX_DELAY);
+            }
+
+            // Only set touchIRQ to false if all touches are released.
+            if (!touches)
+            {
+                touchIRQ = false;
+            }
+            lastNumTouches = touches;
+        }
+
     }
 
-    if (kernel->IsActive())
+    if (active)
     {
         // Update the watch runtime
         kernel->Update();

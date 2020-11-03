@@ -171,16 +171,36 @@ void Kernel::SetActive(bool active)
 
     this->active = active;
 
+    int32_t toggledEvents = EVENT_TOUCH_BEGIN | EVENT_TOUCH_CHANGE | EVENT_TOUCH_END;
+
     // Setup peripherals
-    if (active != display.IsEnabled())
+    if (active)
     {
-        active ? display.Enable() : display.Disable();
+        display.Enable();
+        driver->touchToMonitor();
+        EnableEvents(toggledEvents);
+    }
+    else
+    {
+        DisableEvents(toggledEvents);
+        driver->touchToSleep();
+        display.Disable();
     }
 }
 
 bool Kernel::IsActive()
 {
     return active;
+}
+
+void Kernel::EnableEvents(int32_t type)
+{
+    enabledEventsMask |= (int32_t)type;
+}
+
+void Kernel::DisableEvents(int32_t type)
+{
+    enabledEventsMask &= ~((int32_t)type);
 }
 
 void Kernel::DeepSleep()

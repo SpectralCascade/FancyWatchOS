@@ -101,6 +101,15 @@ public:
     // Is this kernel operating?
     bool IsActive();
 
+    // Enable a specific event.
+    void EnableEvents(int32_t type);
+
+    // Disable a specific event.
+    void DisableEvents(int32_t type);
+
+    // Bitmask indicating which event types are enabled.
+    int32_t enabledEventsMask = 0xFFFFFFFF;
+
     // Causes the watch to enter deep-sleep power saving mode at the end of the next update.
     // Effectively the same as shutting down, but the RTC memory is maintained.
     void DeepSleep();
