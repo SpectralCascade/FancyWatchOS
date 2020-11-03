@@ -3,6 +3,7 @@
 
 #include "../app.h"
 #include "../coremaths.h"
+#include "../gui.h"
 
 class Homestead : public Application
 {
@@ -15,6 +16,10 @@ public:
 
 private:
     Timer timer;
+
+    Button button;
+
+    bool invert = false;
 
     uint8_t lastMinute = 0;
     Rect textArea;

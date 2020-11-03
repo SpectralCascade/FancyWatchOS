@@ -3,6 +3,12 @@
 void Homestead::OnStart(int argc, char* argv[])
 {
     timer.Start();
+
+    // Setup button
+    button = Button(0, 0, 240, 240, SHAPETYPE_INVISIBLE);
+    button.strictPress = true;
+    button.OnClick = [&] () { this->invert = !this->invert; this->lastMinute--; watch->GetDriver()->tft->fillScreen(invert ? TFT_WHITE : TFT_BLACK); };
+
     // Cache text dimensions
     watch->GetDriver()->tft->setTextSize(3);
     textArea.w = watch->GetDriver()->tft->textWidth("00:00", 4);
@@ -27,17 +33,19 @@ void Homestead::HandleEvent(Event& e)
     case EVENT_TOUCH_BEGIN:
         fingers[e.touch.touchID] = true;
     case EVENT_TOUCH_CHANGE:
-        touches[e.touch.touchID].DrawFilled(*watch->GetDisplay(), TFT_BLACK);
+        //touches[e.touch.touchID].DrawFilled(*watch->GetDisplay(), TFT_BLACK);
         touches[e.touch.touchID].x = e.touch.x;
         touches[e.touch.touchID].y = e.touch.y;
         break;
     case EVENT_TOUCH_END:
-        touches[e.touch.touchID].DrawFilled(*watch->GetDisplay(), TFT_BLACK);
+        //touches[e.touch.touchID].DrawFilled(*watch->GetDisplay(), TFT_BLACK);
         fingers[e.touch.touchID] = false;
         break;
     default:
         break;
     }
+
+    button.HandleEvent(e);
 }
 
 void Homestead::Render(Display& display)
@@ -53,15 +61,18 @@ void Homestead::Render(Display& display)
 
         // Now overwrite previous text
         display.GetTFT()->setTextSize(3);
-        textArea.DrawFilled(display, TFT_BLACK);
+        display.GetTFT()->setTextColor(invert ? TFT_BLACK : TFT_WHITE);
+        textArea.DrawFilled(display, invert ? TFT_WHITE : TFT_BLACK);
         display.GetTFT()->drawString(text, textArea.x, textArea.y, 4);
     }
 
-    for (uint8_t i = 0; i < 2; i++)
+    button.Render(display);
+
+    /*for (uint8_t i = 0; i < 2; i++)
     {
         if (fingers[i])
         {
             touches[i].DrawFilled(display, i ? TFT_GREEN : TFT_BLUE);
         }
-    }
+    }*/
 }
