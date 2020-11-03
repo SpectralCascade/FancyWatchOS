@@ -32,19 +32,15 @@ void Kernel::Update()
         switch (e.type)
         {
         case EVENT_POWER_BUTTON:
-            if (display.IsEnabled())
+            if (wasActive)
             {
-                display.Disable();
-                driver->touchToMonitor();
-            }
-            else
-            {
-                display.Enable();
+                SetActive(false);
             }
             break;
         default:
             break;
         }
+
         // Now apps can handle the event. This happens even if an app is not in the foreground.
         for (unsigned int i = 0; i < totalApps; i++)
         {
@@ -55,29 +51,37 @@ void Kernel::Update()
         }
     }
 
-    if (display.IsEnabled())
+    if (!active)
     {
-        // Update apps logic. This happens even if an app is not in the foreground, as long as the display is enabled.
-        for (unsigned int i = 0; i < totalApps; i++)
-        {
-            if (apps[i] != nullptr)
-            {
-                apps[i]->Update();
-            }
-        }
-
-        // Render foreground apps in reverse order; apps that are added first are then rendered on top.
-        for (int i = totalApps - 1; i >= 0; i--)
-        {
-            if (apps[i] != nullptr && apps[i]->_foreground)
-            {
-                apps[i]->Render(display);
-            }
-        }
-
+        // Early out if set inactive by event handling
+        return;
     }
 
-    // Always delay to save some processing time no matter if the display is active.
+    // Update apps logic. This happens even if an app is not in the foreground, as long as the display is enabled.
+    for (unsigned int i = 0; i < totalApps; i++)
+    {
+        if (apps[i] != nullptr)
+        {
+            apps[i]->Update();
+        }
+    }
+
+    if (!active)
+    {
+        // Early out if set inactive by app updates
+        return;
+    }
+
+    // Render foreground apps in reverse order; apps that are added first are then rendered on top.
+    for (int i = totalApps - 1; i >= 0; i--)
+    {
+        if (apps[i] != nullptr && apps[i]->_foreground)
+        {
+            apps[i]->Render(display);
+        }
+    }
+
+    // Always delay to save some processing time, no matter if the display is active.
     uint32_t frameWaitTime = DISPLAY_REFRESH_DELAY - renderTimer.GetTicks();
     if (frameWaitTime <= DISPLAY_REFRESH_DELAY)
     {
@@ -96,6 +100,10 @@ void Kernel::Update()
 
         esp_deep_sleep_start();
     }
+
+    // Can safely say the watch was active in this frame.
+    wasActive = true;
+
 }
 
 int Kernel::StartApp(Application* app, bool foreground, int argc, char* argv[])
@@ -144,6 +152,35 @@ Application* Kernel::KillApp(int id, bool force)
     }
     // Note: killing an app doesn't actually destroy it, hence we return it when done.
     return app;
+}
+
+void Kernel::SetActive(bool active)
+{
+    if (!active)
+    {
+        if (wasActive)
+        {
+            wasActive = false;
+        }
+        else
+        {
+            // Early out, shouldn't set inactive on first active frame.
+            return;
+        }
+    }
+
+    this->active = active;
+
+    // Setup peripherals
+    if (active != display.IsEnabled())
+    {
+        active ? display.Enable() : display.Disable();
+    }
+}
+
+bool Kernel::IsActive()
+{
+    return active;
 }
 
 void Kernel::DeepSleep()

@@ -25,16 +25,16 @@ class Renderer;
 // All input event types.
 enum EventType
 {
-    EVENT_UNKNOWN = 0,
-    EVENT_POWER_CONNECT = 1,
-    EVENT_POWER_CHARGE = 2,
-    EVENT_POWER_DISCONNECT = 3,
-    EVENT_POWER_BUTTON = 4,
-    EVENT_RTC_ALARM = 5,
-    EVENT_RTC_TIMER = 6,
-    EVENT_TOUCH_BEGIN = 7,
-    EVENT_TOUCH_END = 8,
-    EVENT_TOUCH_CHANGE = 9
+    EVENT_UNKNOWN             = 0b00000000000000000000000000000000,
+    EVENT_POWER_CONNECT       = 0b00000000000000000000000000000001,
+    EVENT_POWER_CHARGE        = 0b00000000000000000000000000000010,
+    EVENT_POWER_DISCONNECT    = 0b00000000000000000000000000000100,
+    EVENT_POWER_BUTTON        = 0b00000000000000000000000000001000,
+    EVENT_RTC_ALARM           = 0b00000000000000000000000000010000,
+    EVENT_RTC_TIMER           = 0b00000000000000000000000000100000,
+    EVENT_TOUCH_BEGIN         = 0b00000000000000000000000001000000,
+    EVENT_TOUCH_END           = 0b00000000000000000000000010000000,
+    EVENT_TOUCH_CHANGE        = 0b00000000000000000000000100000000
 };
 
 // All event groups
@@ -94,6 +94,13 @@ public:
     // Returns the application that has been killed so it can be freed from memory if you wish.
     Application* KillApp(int id, bool force = false);
 
+    // Enable or disable the kernel to save power. Setting inactive means apps don't run at all until reactivated,
+    // even input events, as Kernel::Update() is not called.
+    void SetActive(bool active);
+
+    // Is this kernel operating?
+    bool IsActive();
+
     // Causes the watch to enter deep-sleep power saving mode at the end of the next update.
     // Effectively the same as shutting down, but the RTC memory is maintained.
     void DeepSleep();
@@ -116,6 +123,12 @@ private:
 
     // The number of apps that are currently running.
     uint16_t totalApps = 0;
+
+    // Should the kernel update?
+    bool active = true;
+
+    // Used to ensure the watch cannot be deactivated immediately after being activated.
+    bool wasActive = true;
 
     // Should the watch sleep at the end of the next update?
     bool deepSleep = false;

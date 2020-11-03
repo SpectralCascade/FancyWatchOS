@@ -17,6 +17,11 @@ void Homestead::OnStart(int argc, char* argv[])
 
 void Homestead::HandleEvent(Event& e)
 {
+    if (!watch->GetDisplay()->IsEnabled())
+    {
+        return;
+    }
+
     switch (e.type)
     {
     case EVENT_TOUCH_BEGIN:
