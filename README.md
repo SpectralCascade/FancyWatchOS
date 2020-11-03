@@ -7,4 +7,4 @@ Project is built and deployed using [platformio](https://platformio.org). Use co
 
 ## Creating new apps
 
-At present, apps for the watch are designed to run on the same thread, but using a game-engine like component design so multiple apps can operate seemingly simultaneously. Input handling is all done using an event system similar to SDL 2, which I'm in the process of implementing.
+At present, apps for the watch are designed to run on the same thread, but using a game-engine like component design so multiple apps can operate seemingly simultaneously. Input handling is all done using an event system similar to SDL 2, which I'm in the process of implementing. To create a new application, create a class that inherits from the Application class and call Kernel::StartApp() with a valid instance of your app class.
