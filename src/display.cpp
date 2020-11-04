@@ -59,6 +59,7 @@ void Display::Disable()
 void Display::SetBrightness(float percent)
 {
     brightness = (uint8_t)MapRange(percent, 0, 1, 0, 255);
+    device->setBrightness(brightness);
 }
 
 float Display::GetBrightness()

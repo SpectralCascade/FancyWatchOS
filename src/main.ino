@@ -57,6 +57,7 @@ void setup()
     InitInterrupts(kernel->GetDriver());
 
     // Init display
+    kernel->GetDisplay()->SetBrightness(0.01f);
     kernel->GetDisplay()->Enable();
     kernel->GetDisplay()->GetTFT()->setTextColor(TFT_WHITE);
 
