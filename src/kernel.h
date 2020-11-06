@@ -111,7 +111,7 @@ public:
     int32_t enabledEventsMask = 0xFFFFFFFF;
 
     // Causes the watch to enter deep-sleep power saving mode at the end of the next update.
-    // Effectively the same as shutting down, but the RTC memory is maintained.
+    // Effectively the same as shutting down, but the RTC memory is maintained and it can reboot quicker.
     void DeepSleep();
 
     // Don't call this.

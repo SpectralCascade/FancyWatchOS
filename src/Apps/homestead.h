@@ -5,6 +5,8 @@
 #include "../coremaths.h"
 #include "../gui.h"
 
+#define BATTERY_REFRESH_TIME 10
+
 class Homestead : public Application
 {
 public:
@@ -14,15 +16,24 @@ public:
 
     void Render(Display& display);
 
-private:
-    Timer timer;
+    void OnEnterBackground();
+    void OnEnterForeground();
 
+private:
     Button button;
 
     bool invert = false;
 
+    bool charging = false;
+    bool refreshBatteryPercent = false;
+
+    float batteryPercentage = -1;
+    Rect batteryTextArea;
+    Rect wipeArea;
+
+    uint8_t lastSecond = 9;
     uint8_t lastMinute = 0;
-    Rect textArea;
+    Rect timeTextArea;
 
     Circle touches[2] = { { -1, -1, 32 }, { -1, -1, 32 } };
     bool fingers[2] = {false};

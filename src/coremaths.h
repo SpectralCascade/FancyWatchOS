@@ -217,6 +217,7 @@ struct Rect
 
     void Draw(Display& display);
     void Draw(Display& display, uint16_t color);
+    //void Draw(Display& display, float radialFill, uint16_t filledColor, uint16_t emptyColor);
 
     void DrawFilled(Display& display);
     void DrawFilled(Display& display, uint16_t color);

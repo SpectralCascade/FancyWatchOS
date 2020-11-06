@@ -57,7 +57,7 @@ void setup()
     InitInterrupts(kernel->GetDriver());
 
     // Init display
-    kernel->GetDisplay()->SetBrightness(0.01f);
+    kernel->GetDisplay()->SetBrightness(0.5f);
     kernel->GetDisplay()->Enable();
     kernel->GetDisplay()->GetTFT()->setTextColor(TFT_WHITE);
 
@@ -239,7 +239,7 @@ void loop()
     else
     {
         // May as well save some processing cycles while inactive, interrupts will still be handled.
-        vTaskDelay(3);
+        vTaskDelay(DISPLAY_REFRESH_DELAY);
     }
 }
 

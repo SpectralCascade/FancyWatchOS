@@ -29,7 +29,9 @@ public:
     void Disable();
 
     void SetBrightness(float percent);
+    void SetBrightnessLevel(uint8_t level);
     float GetBrightness();
+    uint8_t GetBrightnessLevel();
 
     bool IsEnabled();
 

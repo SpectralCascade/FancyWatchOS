@@ -62,7 +62,18 @@ void Display::SetBrightness(float percent)
     device->setBrightness(brightness);
 }
 
+void Display::SetBrightnessLevel(uint8_t level)
+{
+    brightness = level;
+    device->setBrightness(brightness);
+}
+
 float Display::GetBrightness()
+{
+    return MapRange(brightness, 0, 255, 0, 1);
+}
+
+uint8_t Display::GetBrightnessLevel()
 {
     return brightness;
 }

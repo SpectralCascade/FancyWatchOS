@@ -35,6 +35,7 @@ void Kernel::Update()
             if (wasActive)
             {
                 SetActive(false);
+                DeepSleep();
             }
             break;
         default:
@@ -94,11 +95,12 @@ void Kernel::Update()
 
     if (deepSleep)
     {
+        deepSleep = false;
         display.Disable();
 
         esp_sleep_enable_ext1_wakeup(GPIO_SEL_35, ESP_EXT1_WAKEUP_ALL_LOW);
 
-        esp_deep_sleep_start();
+        esp_light_sleep_start();
     }
 
     // Can safely say the watch was active in this frame.
