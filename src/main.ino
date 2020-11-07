@@ -36,24 +36,6 @@ void setup()
     // Initialise the watch
     kernel = new Kernel(TTGOClass::getWatch(), events);
 
-    // Disable unused power outputs.
-    /*
-        From https://github.com/tuupola/esp_twatch2020
-
-        DC-DC1	PWM charger.
-        DC-DC2	Not used 0.7V to 2.275V, 1.6A.
-        DC-DC3	ESP32, 0.7V to 3.5V, 1.2A. Always enable!
-        LDO1	Always on 30mA.
-        LDO2 1)	Display backlight 1.8V to 3.3V, 200mA.
-        LDO3 2)	Audio power 0.7V to 3.5V, 200mA.
-        LDO4	Not used 1.8V to 3.3V, 200mA.
-        LDO5	Not used 1.8V to 3.3V, 50mA.
-    */
-    kernel->GetDriver()->power->setPowerOutPut(AXP202_EXTEN, AXP202_OFF);
-    kernel->GetDriver()->power->setPowerOutPut(AXP202_DCDC2, AXP202_OFF);
-    kernel->GetDriver()->power->setPowerOutPut(AXP202_LDO3, AXP202_OFF);
-    kernel->GetDriver()->power->setPowerOutPut(AXP202_LDO4, AXP202_OFF);
-
     InitInterrupts(kernel->GetDriver());
 
     // Init display

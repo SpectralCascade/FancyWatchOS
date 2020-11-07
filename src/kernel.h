@@ -120,6 +120,9 @@ public:
     // Or this.
     TTGOClass* GetDriver();
 
+    // Returns the true battery percentage.
+    float GetBatteryPercentage();
+
 private:
     Display display;
     TTGOClass* driver;

@@ -37,7 +37,6 @@ void Homestead::OnEnterBackground()
 
 void Homestead::OnEnterForeground()
 {
-    batteryPercentage = watch->GetDriver()->power->getBattPercentage();
     refreshBatteryPercent = true;
 }
 
@@ -50,17 +49,6 @@ void Homestead::HandleEvent(Event& e)
 
     switch (e.type)
     {
-    case EVENT_TOUCH_BEGIN:
-        fingers[e.touch.touchID] = true;
-    case EVENT_TOUCH_CHANGE:
-        //touches[e.touch.touchID].DrawFilled(*watch->GetDisplay(), TFT_BLACK);
-        touches[e.touch.touchID].x = e.touch.x;
-        touches[e.touch.touchID].y = e.touch.y;
-        break;
-    case EVENT_TOUCH_END:
-        //touches[e.touch.touchID].DrawFilled(*watch->GetDisplay(), TFT_BLACK);
-        fingers[e.touch.touchID] = false;
-        break;
     case EVENT_POWER_CHARGE:
         charging = true;
         watch->GetDriver()->shake();
@@ -118,6 +106,7 @@ void Homestead::Render(Display& display)
         if (currentBatteryPercentage != batteryPercentage || forceRedraw)
         {
             batteryPercentage = Clamp(currentBatteryPercentage, 0.0f, 1.0f);
+            LogLine(0, "Battery percent = %f", currentBatteryPercentage);
 
             // Draw text first
             display.GetTFT()->setTextSize(1);
@@ -142,12 +131,4 @@ void Homestead::Render(Display& display)
 
     }
     lastSecond = date.second;
-
-    /*for (uint8_t i = 0; i < 2; i++)
-    {
-        if (fingers[i])
-        {
-            touches[i].DrawFilled(display, i ? TFT_GREEN : TFT_BLUE);
-        }
-    }*/
 }

@@ -6,12 +6,16 @@
 //#define LOG_SERIAL 1
 //#define LOG_OVERLAY 1
 
+
 #if LOG_OVERLAY
 #define Log(...) TTGOClass::getWatch()->tft->printf(__VA_ARGS__); TTGOClass::getWatch()->tft->printf("\n")
+#define LogLine(LINE, ...) TTGOClass::getWatch()->tft->setCursor(0, LINE * TTGOClass::getWatch()->tft->fontHeight()); TTGOClass::getWatch()->tft->printf(__VA_ARGS__);
 #elif LOG_SERIAL
 #define Log(...) Serial.printf(__VA_ARGS__); Serial.printf("\n")
+#define LogLine(LINE, ...) Log(__VA_ARGS__)
 #else
 #define Log(...)
+#define LogLine(...)
 #endif
 
 #define LogInfo(...) TTGOClass::getWatch()->tft->setTextColor(TFT_GREEN); Log(__VA_ARGS__)

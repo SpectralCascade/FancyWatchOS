@@ -35,9 +35,6 @@ private:
     uint8_t lastMinute = 0;
     Rect timeTextArea;
 
-    Circle touches[2] = { { -1, -1, 32 }, { -1, -1, 32 } };
-    bool fingers[2] = {false};
-
 };
 
 #endif // HOMESTEAD_H
