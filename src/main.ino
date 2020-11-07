@@ -36,12 +36,7 @@ void setup()
     // Initialise the watch
     kernel = new Kernel(TTGOClass::getWatch(), events);
 
-    InitInterrupts(kernel->GetDriver());
-
-    // Init display
-    kernel->GetDisplay()->SetBrightness(0.5f);
-    kernel->GetDisplay()->Enable();
-    kernel->GetDisplay()->GetTFT()->setTextColor(TFT_WHITE);
+    InitInterrupts(kernel->driver);
 
     Log("Setup kernel.");
 
@@ -88,7 +83,7 @@ void loop()
     //
     if (powerIRQ)
     {
-        AXP20X_Class* power = kernel->GetDriver()->power;
+        AXP20X_Class* power = kernel->driver->power;
         power->readIRQ();
 
         Event e;
@@ -124,7 +119,7 @@ void loop()
     //
     if (rtcIRQ)
     {
-        PCF8563_Class* rtc = kernel->GetDriver()->rtc;
+        PCF8563_Class* rtc = kernel->driver->rtc;
         detachInterrupt(RTC_INT);
 
         Event e;
@@ -167,7 +162,7 @@ void loop()
         else
         {
             // TODO: handle multiple touch interrupts in a single frame?
-            FT5206_Class* touch = kernel->GetDriver()->touch;
+            FT5206_Class* touch = kernel->driver->touch;
 
             uint8_t touches = touch->touched();
             Event e[2];

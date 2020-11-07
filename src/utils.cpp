@@ -54,3 +54,69 @@ float MapRange(float value, float min, float max, float min_new, float max_new)
     return min_new + (fraction * (max_new - min_new));
 }
 
+const char* GetWeekdayName(uint8_t dayOfWeek)
+{
+    static const char names[7][10] = {
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+    };
+
+    dayOfWeek = Clamp(dayOfWeek, 1, 7) - 1;
+
+    return names[dayOfWeek];
+}
+
+const char* GetMonthName(uint8_t monthOfYear)
+{
+    static const char names[12][10] = {
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+    };
+
+    monthOfYear = Clamp(monthOfYear, 1, 12) - 1;
+
+    return names[monthOfYear];
+}
+
+const char* GetNumericSuffix(uint32_t number)
+{
+    uint32_t normalised = number % 100;
+    if (normalised > 10 && normalised < 14)
+    {
+        return "th";
+    }
+
+    normalised = normalised % 10;
+    if (normalised != 0)
+    {
+        if (normalised < 2)
+        {
+            return "st";
+        }
+        else if (normalised < 3)
+        {
+            return "nd";
+        }
+        else if (normalised < 4)
+        {
+            return "rd";
+        }
+    }
+
+    return "th";
+}

@@ -39,8 +39,10 @@ void Display::Enable()
 
         // Initialise it again
         device->openBL();
-
         device->displayWakeup();
+
+        // Start the timer and set enabled.
+        activeTimer.Start();
         enabled = true;
     }
 }
@@ -49,9 +51,14 @@ void Display::Disable()
 {
     if (enabled)
     {
+        // Sleep the display
         device->displaySleep();
+
         // Turn off power to the screen
         device->power->setPowerOutPut(AXP202_LDO2, false);
+
+        // Stop the timer and set disabled.
+        activeTimer.Stop();
         enabled = false;
     }
 }

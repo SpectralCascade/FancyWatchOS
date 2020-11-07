@@ -5,30 +5,57 @@ void Homestead::OnStart(int argc, char* argv[])
     // Setup button
     button = Button(0, 0, 240, 240, SHAPETYPE_INVISIBLE);
     button.strictPress = true;
-    button.OnClick = [&] () { this->invert = !this->invert; this->lastMinute--; watch->GetDriver()->tft->fillScreen(invert ? TFT_WHITE : TFT_BLACK); };
+    button.OnClick = [&] () {
+        invert = !invert;
+        refreshBatteryPercent = true;
+        wasCharging = !charging;
+        batteryPercentage = 1.1f;
+        lastMinute--;
+        lastDay--;
+        watch->driver->tft->fillScreen(invert ? TFT_WHITE : TFT_BLACK);
+    };
 
     // Cache text dimensions
 
     // Time text
-    watch->GetDriver()->tft->setTextSize(3);
-    timeTextArea.w = watch->GetDriver()->tft->textWidth("00:00", 4);
-    timeTextArea.h = watch->GetDriver()->tft->fontHeight(4);
+    watch->driver->tft->setTextSize(3);
+    timeTextArea.w = watch->driver->tft->textWidth("00:00", 4);
+    timeTextArea.h = watch->driver->tft->fontHeight(4);
     timeTextArea.x = 120 - (timeTextArea.w / 2);
     timeTextArea.y = 120 - (timeTextArea.h / 2);
     if (IsForeground())
     {
-        watch->GetDriver()->tft->fillScreen(TFT_BLACK);
-        refreshBatteryPercent = true;
+        watch->driver->tft->fillScreen(TFT_BLACK);
     }
 
+    // Date text
+    watch->driver->tft->setTextSize(1);
+    dateTextArea.w = watch->driver->tft->textWidth("Sun 13th Feb", 4);
+    dateTextArea.h = watch->driver->tft->fontHeight(4);
+    dateTextArea.x = 120 - (dateTextArea.w / 2);
+    dateTextArea.y = timeTextArea.y + timeTextArea.h + 8;
+    if (IsForeground())
+    {
+        watch->driver->tft->fillScreen(TFT_BLACK);
+    }
+    wipeDateArea = dateTextArea;
+
     // Battery text
-    watch->GetDriver()->tft->setTextSize(1);
-    batteryTextArea.w = watch->GetDriver()->tft->textWidth("000%", 4);
-    batteryTextArea.h = watch->GetDriver()->tft->fontHeight(4);
+    batteryTextArea.w = watch->driver->tft->textWidth("000%", 4);
+    batteryTextArea.h = watch->driver->tft->fontHeight(4);
     batteryTextArea.x = 120 - (batteryTextArea.w / 2);
     batteryTextArea.y = timeTextArea.y - batteryTextArea.h - 8;
-    wipeArea = batteryTextArea;
+    wipeBatteryArea = batteryTextArea;
 
+    // Check if the watch started up while charging
+    charging = watch->driver->power->isChargeing();
+
+    // Trigger changes
+    wasCharging = !charging;
+    refreshBatteryPercent = true;
+    lastMinute--;
+    lastDay--;
+    batteryPercentage = 1.1f;
 }
 
 void Homestead::OnEnterBackground()
@@ -42,24 +69,25 @@ void Homestead::OnEnterForeground()
 
 void Homestead::HandleEvent(Event& e)
 {
-    if (!watch->GetDisplay()->IsEnabled())
+    if (!watch->display.IsEnabled())
     {
         return;
     }
 
     switch (e.type)
     {
-    case EVENT_POWER_CHARGE:
-        charging = true;
-        watch->GetDriver()->shake();
-        refreshBatteryPercent = true;
-        break;
     case EVENT_POWER_DISCONNECT:
         charging = false;
-        refreshBatteryPercent = true;
+        wasCharging = true;
+        break;
+    case EVENT_POWER_CONNECT:
+        charging = true;
+        wasCharging = false;
+        watch->driver->shake();
+        break;
+    case EVENT_POWER_CHARGE:
         break;
     case EVENT_POWER_BUTTON:
-    case EVENT_POWER_CONNECT:
         refreshBatteryPercent = true;
         break;
     default:
@@ -71,16 +99,14 @@ void Homestead::HandleEvent(Event& e)
 
 void Homestead::Render(Display& display)
 {
-    bool forceRedraw = false;
-
     // TODO: consider using timer instead of RTC to update every minute, maybe more efficient?
-    RTC_Date date = watch->GetDriver()->rtc->getDateTime();
+    RTC_Date date = watch->driver->rtc->getDateTime();
     if (lastMinute != date.minute)
     {
         lastMinute = date.minute;
 
         // Convert date to text
-        char text[6] = {'\0'};
+        char text[6] = { '\0' };
         sprintf(text, "%02u:%02u", date.hour, date.minute);
 
         // Now overwrite previous text
@@ -88,22 +114,39 @@ void Homestead::Render(Display& display)
         display.GetTFT()->setTextColor(invert ? TFT_BLACK : TFT_WHITE);
         timeTextArea.DrawFilled(display, invert ? TFT_WHITE : TFT_BLACK);
         display.GetTFT()->drawString(text, timeTextArea.x, timeTextArea.y, 4);
-        forceRedraw = true;
     }
 
-    if (charging)
+    if (lastDay != date.day)
     {
-        // Show charging symbol
+        lastDay = date.day;
+
+        // TODO: remove this hacky time fix... should sync to WiFi.
+        uint8_t day = date.day - 1;
+
+        // Now overwrite previous text
+        display.GetTFT()->setTextSize(1);
+        display.GetTFT()->setTextColor(invert ? TFT_BLACK : TFT_WHITE);
+
+        // Convert date to text
+        char text[13] = { '\0' };
+        sprintf(text, "%.3s %d%s %.3s", GetWeekdayName(watch->driver->rtc->getDayOfWeek(day, date.month, date.year)), day, GetNumericSuffix(day), GetMonthName(date.month));
+        //sprintf(text, watch->driver->rtc->formatDateTime(PCF_TIMEFORMAT_DD_MM_YYYY));
+
+        wipeDateArea.DrawFilled(display, invert ? TFT_WHITE : TFT_BLACK);
+        // Width can change
+        dateTextArea.w = display.GetTFT()->textWidth(text, 4);
+        dateTextArea.x = 120 - (dateTextArea.w / 2);
+
+        display.GetTFT()->drawString(text, dateTextArea.x, dateTextArea.y, 4);
     }
 
     // Update battery percentage every BATTERY_REFRESH_TIME seconds, or on forced refresh.
-    if ((lastSecond != date.second && date.second % BATTERY_REFRESH_TIME == 0) || refreshBatteryPercent || forceRedraw)
+    if ((lastSecond != date.second && date.second % BATTERY_REFRESH_TIME == 0) || refreshBatteryPercent)
     {
-
-        float currentBatteryPercentage = (float)watch->GetDriver()->power->getBattPercentage() / 100.0f;
+        float currentBatteryPercentage = (float)watch->driver->power->getBattPercentage() / 100.0f;
 
         // No need to update unless battery percentage actually changes
-        if (currentBatteryPercentage != batteryPercentage || forceRedraw)
+        if (currentBatteryPercentage < batteryPercentage || (currentBatteryPercentage > batteryPercentage && charging))
         {
             batteryPercentage = Clamp(currentBatteryPercentage, 0.0f, 1.0f);
             LogLine(0, "Battery percent = %f", currentBatteryPercentage);
@@ -115,20 +158,36 @@ void Homestead::Render(Display& display)
             char text[5] = { '\0', '\0', '\0', '\0', '\0' };
             sprintf(text, "%d%%", (int)(batteryPercentage * 100.0f));
 
-            wipeArea.DrawFilled(display, invert ? TFT_WHITE : TFT_BLACK);
+            wipeBatteryArea.DrawFilled(display, invert ? TFT_WHITE : TFT_BLACK);
             // Width can change
             batteryTextArea.w = display.GetTFT()->textWidth(text, 4);
             batteryTextArea.x = 120 - (batteryTextArea.w / 2);
 
             display.GetTFT()->drawString(text, batteryTextArea.x, batteryTextArea.y, 4);
-
-            // Now draw the fancy circle overlay
-            // TODO: battery level colour
-            display.GetTFT()->drawRoundRect(0, 0, 240, 240, 16, charging ? TFT_GREEN : TFT_BLUE);
-            display.GetTFT()->drawRoundRect(1, 1, 238, 238, 16, charging ? TFT_GREEN : TFT_BLUE);
-
         }
 
     }
+
+    if (wasCharging != charging)
+    {
+        if (charging)
+        {
+            // Show charging symbol
+            // TODO
+        }
+
+        wasCharging = charging;
+
+        if (!invert)
+        {
+            // Now draw the fancy overlay
+            for (uint8_t i = 0; i < 2; i++)
+            {
+                uint8_t dimensions = 240 - (i * 2);
+                display.GetTFT()->drawRoundRect(i, i, dimensions, dimensions, 32 - i * 2, charging ? TFT_GREEN : TFT_BLUE);
+            }
+        }
+    }
+
     lastSecond = date.second;
 }

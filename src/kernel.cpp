@@ -35,6 +35,14 @@ Kernel::Kernel(TTGOClass* device, QueueHandle_t eventQueue)
     driver->power->setPowerOutPut(AXP202_LDO3, AXP202_OFF);
     driver->power->setPowerOutPut(AXP202_LDO4, AXP202_OFF);
 
+    driver->motor_begin();
+
+    // Activate the kernel.
+    SetActive(true);
+
+    // Initialise the display settings
+    display.SetBrightness(0.5f);
+    driver->tft->setTextColor(TFT_WHITE);
 
     renderTimer.Start();
 }
@@ -232,14 +240,4 @@ void Kernel::DisableEvents(int32_t type)
 void Kernel::EnterSleep()
 {
     sleepMode = true;
-}
-
-Display* Kernel::GetDisplay()
-{
-    return &display;
-}
-
-TTGOClass* Kernel::GetDriver()
-{
-    return driver;
 }

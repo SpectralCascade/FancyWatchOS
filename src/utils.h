@@ -34,4 +34,13 @@ int Wrap(int n, int change, int min, int max);
 /// value = value to be mapped, min and max = original range, min_new and max_new = the new range to be mapped to.
 float MapRange(float value, float min, float max, float min_new, float max_new);
 
+/// Returns the name of a specific weekday, starting from 1 = Monday up to 7 = Sunday.
+const char* GetWeekdayName(uint8_t dayOfWeek);
+
+/// Returns the name of a specific month, starting from 1 = January up to 12 = December.
+const char* GetMonthName(uint8_t monthOfYear);
+
+/// Return the suffix for a given unsigned integer, e.g. 3 = "rd", 13 = "th" etc.
+const char* GetNumericSuffix(uint32_t number);
+
 #endif // UTILS_H

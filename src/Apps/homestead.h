@@ -24,16 +24,20 @@ private:
 
     bool invert = false;
 
+    bool wasCharging = false;
     bool charging = false;
-    bool refreshBatteryPercent = false;
+    bool refreshBatteryPercent = true;
 
-    float batteryPercentage = -1;
+    float batteryPercentage = 1.1f;
     Rect batteryTextArea;
-    Rect wipeArea;
+    Rect wipeBatteryArea;
 
     uint8_t lastSecond = 9;
     uint8_t lastMinute = 0;
+    uint8_t lastDay = 40;
     Rect timeTextArea;
+    Rect dateTextArea;
+    Rect wipeDateArea;
 
 };
 

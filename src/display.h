@@ -53,9 +53,15 @@ public:
     // Returns a pointer to the TFT_eSPI instance.
     TFT_eSPI* GetTFT();
 
+    // Returns how long since the display has been enabled. Returns 0 if the display is disabled.
+    uint32_t GetTimeActive();
+
 private:
     // Reference to the device implementation
     TTGOClass* device;
+
+    // How long the display has been enabled.
+    Timer activeTimer;
 
     // The buffer used for rendering.
     Surface renderBuffer;

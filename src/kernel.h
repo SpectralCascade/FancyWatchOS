@@ -113,19 +113,11 @@ public:
     // Causes the watch to enter light-sleep power saving mode at the end of the next update.
     void EnterSleep();
 
-    // Don't call this.
-    Display* GetDisplay();
-
-    // Or this.
-    TTGOClass* GetDriver();
-
-    // Returns the true battery percentage.
-    float GetBatteryPercentage();
-
-private:
     Display display;
+
     TTGOClass* driver;
 
+private:
     // Input event queue.
     QueueHandle_t events;
 
