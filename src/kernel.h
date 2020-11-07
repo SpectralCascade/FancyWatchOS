@@ -110,9 +110,8 @@ public:
     // Bitmask indicating which event types are enabled.
     int32_t enabledEventsMask = 0xFFFFFFFF;
 
-    // Causes the watch to enter deep-sleep power saving mode at the end of the next update.
-    // Effectively the same as shutting down, but the RTC memory is maintained and it can reboot quicker.
-    void DeepSleep();
+    // Causes the watch to enter light-sleep power saving mode at the end of the next update.
+    void EnterSleep();
 
     // Don't call this.
     Display* GetDisplay();
@@ -143,7 +142,7 @@ private:
     bool wasActive = true;
 
     // Should the watch sleep at the end of the next update?
-    bool deepSleep = false;
+    bool sleepMode = false;
 
     // Timing and frame rate management
     Timer renderTimer;

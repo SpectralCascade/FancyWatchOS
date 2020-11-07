@@ -56,8 +56,7 @@ void Kernel::Update()
         case EVENT_POWER_BUTTON:
             if (wasActive)
             {
-                SetActive(false);
-                //DeepSleep();
+                EnterSleep();
             }
             break;
         default:
@@ -74,33 +73,27 @@ void Kernel::Update()
         }
     }
 
-    if (!active)
+    if (active)
     {
-        // Early out if set inactive by event handling
-        return;
-    }
-
-    // Update apps logic. This happens even if an app is not in the foreground, as long as the display is enabled.
-    for (unsigned int i = 0; i < totalApps; i++)
-    {
-        if (apps[i] != nullptr)
+        // Update apps logic. This happens even if an app is not in the foreground, as long as the display is enabled.
+        for (unsigned int i = 0; i < totalApps; i++)
         {
-            apps[i]->Update();
+            if (apps[i] != nullptr)
+            {
+                apps[i]->Update();
+            }
         }
     }
 
-    if (!active)
+    if (active)
     {
-        // Early out if set inactive by app updates
-        return;
-    }
-
-    // Render foreground apps in reverse order; apps that are added first are then rendered on top.
-    for (int i = totalApps - 1; i >= 0; i--)
-    {
-        if (apps[i] != nullptr && apps[i]->_foreground)
+        // Render foreground apps in reverse order; apps that are added first are then rendered on top.
+        for (int i = totalApps - 1; i >= 0; i--)
         {
-            apps[i]->Render(display);
+            if (apps[i] != nullptr && apps[i]->_foreground)
+            {
+                apps[i]->Render(display);
+            }
         }
     }
 
@@ -115,18 +108,25 @@ void Kernel::Update()
     // Restart the timer.
     renderTimer.Start();
 
-    if (deepSleep)
+    if (sleepMode)
     {
-        deepSleep = false;
-        display.Disable();
+        sleepMode = false;
 
-        esp_sleep_enable_ext1_wakeup(GPIO_SEL_35, ESP_EXT1_WAKEUP_ALL_LOW);
+        // Set inactive if not already.
+        SetActive(false);
 
+        Log("Entering sleep mode...");
+
+        // Start sleeping
+        gpio_wakeup_enable((gpio_num_t)AXP202_INT, GPIO_INTR_LOW_LEVEL);
+        esp_sleep_enable_gpio_wakeup();
         esp_light_sleep_start();
     }
-
-    // Can safely say the watch was active in this frame.
-    wasActive = true;
+    else
+    {
+        // Can safely say the watch was active in this frame.
+        wasActive = true;
+    }
 
 }
 
@@ -197,9 +197,10 @@ void Kernel::SetActive(bool active)
 
     int32_t toggledEvents = EVENT_TOUCH_BEGIN | EVENT_TOUCH_CHANGE | EVENT_TOUCH_END;
 
-    // Setup peripherals
+    // Switch between energy-saving and regular operation modes.
     if (active)
     {
+        setCpuFrequencyMhz(120);
         display.Enable();
         driver->touchToMonitor();
         EnableEvents(toggledEvents);
@@ -209,6 +210,7 @@ void Kernel::SetActive(bool active)
         DisableEvents(toggledEvents);
         driver->touchToSleep();
         display.Disable();
+        setCpuFrequencyMhz(20);
     }
 }
 
@@ -227,9 +229,9 @@ void Kernel::DisableEvents(int32_t type)
     enabledEventsMask &= ~((int32_t)type);
 }
 
-void Kernel::DeepSleep()
+void Kernel::EnterSleep()
 {
-    deepSleep = true;
+    sleepMode = true;
 }
 
 Display* Kernel::GetDisplay()
