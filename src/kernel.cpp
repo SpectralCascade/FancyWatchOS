@@ -37,6 +37,61 @@ Kernel::Kernel(TTGOClass* device, QueueHandle_t eventQueue)
 
     driver->motor_begin();
 
+    // Setup the BMA accelerometer
+    Acfg config;
+    /**
+        Output data rate in Hz, Optional parameters:
+            - BMA4_OUTPUT_DATA_RATE_0_78HZ
+            - BMA4_OUTPUT_DATA_RATE_1_56HZ
+            - BMA4_OUTPUT_DATA_RATE_3_12HZ
+            - BMA4_OUTPUT_DATA_RATE_6_25HZ
+            - BMA4_OUTPUT_DATA_RATE_12_5HZ
+            - BMA4_OUTPUT_DATA_RATE_25HZ
+            - BMA4_OUTPUT_DATA_RATE_50HZ
+            - BMA4_OUTPUT_DATA_RATE_100HZ
+            - BMA4_OUTPUT_DATA_RATE_200HZ
+            - BMA4_OUTPUT_DATA_RATE_400HZ
+            - BMA4_OUTPUT_DATA_RATE_800HZ
+            - BMA4_OUTPUT_DATA_RATE_1600HZ
+    */
+    config.odr = BMA4_OUTPUT_DATA_RATE_100HZ;
+    /**
+        G-range, Optional parameters:
+            - BMA4_ACCEL_RANGE_2G
+            - BMA4_ACCEL_RANGE_4G
+            - BMA4_ACCEL_RANGE_8G
+            - BMA4_ACCEL_RANGE_16G
+    */
+    config.range = BMA4_ACCEL_RANGE_2G;
+    /**
+        Bandwidth parameter, determines filter configuration, Optional parameters:
+            - BMA4_ACCEL_OSR4_AVG1
+            - BMA4_ACCEL_OSR2_AVG2
+            - BMA4_ACCEL_NORMAL_AVG4
+            - BMA4_ACCEL_CIC_AVG8
+            - BMA4_ACCEL_RES_AVG16
+            - BMA4_ACCEL_RES_AVG32
+            - BMA4_ACCEL_RES_AVG64
+            - BMA4_ACCEL_RES_AVG128
+    */
+    config.bandwidth = BMA4_ACCEL_NORMAL_AVG4;
+    /** Filter performance mode , Optional parameters:
+        - BMA4_CIC_AVG_MODE
+        - BMA4_CONTINUOUS_MODE
+    */
+    config.perf_mode = BMA4_CONTINUOUS_MODE;
+
+    // Apply configuration to the sensor.
+    driver->bma->accelConfig(config);
+
+    // Disable BMA423 step counting (for now).
+    driver->bma->enableFeature(BMA423_STEP_CNTR, false);
+    driver->bma->enableFeature(BMA423_TILT, true);
+    driver->bma->enableFeature(BMA423_WAKEUP, true);
+
+    // Set step count to zero.
+    driver->bma->resetStepCounter();
+
     // Activate the kernel.
     SetActive(true);
 
@@ -55,6 +110,7 @@ Kernel::~Kernel()
 void Kernel::Update()
 {
     // Check for system-level input events
+    bool eventOccurred = false;
     Event e;
     while (uxQueueMessagesWaiting(events) > 0)
     {
@@ -79,6 +135,13 @@ void Kernel::Update()
                 apps[i]->HandleEvent(e);
             }
         }
+        // TODO: Only update napTimer for events that trigger a wakeup.
+        eventOccurred = true;
+    }
+
+    if (eventOccurred)
+    {
+        napTimer.Start();
     }
 
     if (active)
@@ -116,18 +179,23 @@ void Kernel::Update()
     // Restart the timer.
     renderTimer.Start();
 
-    if (sleepMode)
+    if (sleepMode || napTimer.GetTicks() > DISPLAY_TIMEOUT)
     {
         sleepMode = false;
+        napTimer.Stop();
 
         // Set inactive if not already.
         SetActive(false);
 
         Log("Entering sleep mode...");
 
-        // Start sleeping
+        // First setup the power interrupts.
         gpio_wakeup_enable((gpio_num_t)AXP202_INT, GPIO_INTR_LOW_LEVEL);
+        // Then the BMA interrupts.
+        esp_sleep_enable_ext1_wakeup(GPIO_SEL_39, ESP_EXT1_WAKEUP_ANY_HIGH);
         esp_sleep_enable_gpio_wakeup();
+
+        // Start sleeping
         esp_light_sleep_start();
     }
     else
@@ -212,6 +280,7 @@ void Kernel::SetActive(bool active)
         display.Enable();
         driver->touchToMonitor();
         EnableEvents(toggledEvents);
+        napTimer.Start();
     }
     else
     {

@@ -17,6 +17,10 @@
 // The maximum stack depth of an application.
 #define MAX_APP_STACK 256
 
+// TODO: replace with better timeout system.
+// 10 second timeout of the display without any inputs.
+#define DISPLAY_TIMEOUT 10000
+
 // Forward declarations
 class TTGOClass;
 class Application;
@@ -34,7 +38,10 @@ enum EventType
     EVENT_RTC_TIMER           = 0b00000000000000000000000000100000,
     EVENT_TOUCH_BEGIN         = 0b00000000000000000000000001000000,
     EVENT_TOUCH_END           = 0b00000000000000000000000010000000,
-    EVENT_TOUCH_CHANGE        = 0b00000000000000000000000100000000
+    EVENT_TOUCH_CHANGE        = 0b00000000000000000000000100000000,
+    EVENT_BMA_TILT            = 0b00000000000000000000001000000000,
+    EVENT_BMA_DOUBLE_TAP      = 0b00000000000000000000010000000000,
+    EVENT_BMA_STEP_COUNT      = 0b00000000000000000000100000000000
 };
 
 // All event groups
@@ -118,6 +125,9 @@ public:
     TTGOClass* driver;
 
 private:
+    // Timer for putting the watch to sleep after some time without any input events.
+    Timer napTimer;
+
     // Input event queue.
     QueueHandle_t events;
 

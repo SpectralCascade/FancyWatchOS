@@ -14,9 +14,11 @@ Kernel* kernel;
 
 // Events queue
 QueueHandle_t events;
+// TODO: use thread safe bit flags instead
 bool powerIRQ = false;
 bool rtcIRQ = false;
 bool touchIRQ = false;
+bool bmaIRQ = false;
 
 // The default library only supports up to 2 touches at a time, though in theory it could support more.
 TouchEvent lastTouches[2] = { { 0xFF, -1, -1 }, { 0xFF, -1, -1 } };
@@ -71,12 +73,25 @@ void InitInterrupts(TTGOClass* device)
     pinMode(TOUCH_INT, INPUT_PULLUP);
     attachInterrupt(TOUCH_INT, [] { touchIRQ = true; }, FALLING);
 
+    //
+    // BMA interrupts.
+    //
+
+    // Detects when you tilt the watch.
+    device->bma->enableTiltInterrupt();
+    // "Double-tap" interrupt - detects motion from double tapping the watch quickly.
+    device->bma->enableWakeupInterrupt();
+    // Assumes the sensor is configured, otherwise uses default settings.
+    device->bma->attachInterrupt();
+
+    pinMode(BMA423_INT1, INPUT);
+    attachInterrupt(BMA423_INT1, [] () { bmaIRQ = true; }, RISING);
+
 }
 
 void loop()
 {
     // Handle interrupts and pass to the events queue.
-    bool active = kernel->IsActive();
 
     //
     // Power
@@ -208,7 +223,54 @@ void loop()
 
     }
 
-    if (active)
+    //
+    // BMA sensor
+    //
+    if (bmaIRQ)
+    {
+        bool read = false;
+
+        Event e;
+        e.type = 0;
+        do
+        {
+            read = kernel->driver->bma->readInterrupt();
+
+            if (kernel->driver->bma->isTilt())
+            {
+                e.type = EVENT_BMA_TILT;
+            }
+            else if (kernel->driver->bma->isDoubleClick())
+            {
+                e.type = EVENT_BMA_DOUBLE_TAP;
+            }
+            else if (kernel->driver->bma->isStepCounter())
+            {
+                e.type = EVENT_BMA_STEP_COUNT;
+            }
+            else
+            {
+                // TODO: other events
+                e.type = 0;
+            }
+
+            if (e.type != 0)
+            {
+                xQueueSend(events, &e, portMAX_DELAY);
+            }
+
+            if (e.type == EVENT_BMA_TILT || e.type == EVENT_BMA_DOUBLE_TAP)
+            {
+                kernel->SetActive(true);
+            }
+
+        } while (!read);
+
+        bmaIRQ = false;
+    }
+
+    // TODO: if watch is not active, sleep again!
+    if (kernel->IsActive())
     {
         // Update the watch runtime
         kernel->Update();
