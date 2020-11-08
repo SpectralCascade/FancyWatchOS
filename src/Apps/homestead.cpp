@@ -129,7 +129,7 @@ void Homestead::Render(Display& display)
 
         // Convert date to text
         char text[13] = { '\0' };
-        sprintf(text, "%.3s %d%s %.3s", GetWeekdayName(watch->driver->rtc->getDayOfWeek(day, date.month, date.year)), day, GetNumericSuffix(day), GetMonthName(date.month));
+        sprintf(text, "%.3s %d%s %.3s", GetWeekdayName(watch->driver->rtc->getDayOfWeek(day, date.month, date.year) - 1), day, GetNumericSuffix(day), GetMonthName(date.month));
         //sprintf(text, watch->driver->rtc->formatDateTime(PCF_TIMEFORMAT_DD_MM_YYYY));
 
         wipeDateArea.DrawFilled(display, invert ? TFT_WHITE : TFT_BLACK);
