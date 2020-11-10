@@ -5,12 +5,12 @@
 #include "../coremaths.h"
 #include "../gui.h"
 
-#define BATTERY_REFRESH_TIME 10
+#define BATTERY_REFRESH_TIME 1
 
 class Homestead : public Application
 {
 public:
-    Homestead() : batteryText(120, 120 - 56), dateText(120, 120 + 56), timeText(120, 120) {}
+    Homestead() : batteryText(120, 120 - 60), dateText(120, 120 + 56), timeText(120, 120) {}
 
     void OnStart(int argc, char* argv[]);
 

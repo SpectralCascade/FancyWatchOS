@@ -8,6 +8,11 @@ void Homestead::OnStart(int argc, char* argv[])
         watch->driver->tft->fillScreen(TFT_BLACK);
     }
 
+    // Battery text
+    batteryText.SetFont(4);
+    batteryText.SetSize(1);
+    batteryText.SetDatum(MC_DATUM);
+
     // Time text
     timeText.SetFont(4);
     timeText.SetSize(3);
@@ -17,11 +22,6 @@ void Homestead::OnStart(int argc, char* argv[])
     dateText.SetFont(4);
     dateText.SetSize(1);
     dateText.SetDatum(MC_DATUM);
-
-    // Battery text
-    batteryText.SetFont(4);
-    batteryText.SetSize(1);
-    batteryText.SetDatum(MC_DATUM);
 
     // Check if the watch started up while charging
     charging = watch->driver->power->isChargeing();
@@ -122,6 +122,7 @@ void Homestead::Render(Display& display)
             batteryText.Render(display);
         }
 
+        refreshBatteryPercent = false;
     }
 
     if (wasCharging != charging)
