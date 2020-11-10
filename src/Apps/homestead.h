@@ -20,10 +20,6 @@ public:
     void OnEnterForeground();
 
 private:
-    Button button;
-
-    bool invert = false;
-
     bool wasCharging = false;
     bool charging = false;
     bool refreshBatteryPercent = true;

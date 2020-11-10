@@ -2,19 +2,6 @@
 
 void Homestead::OnStart(int argc, char* argv[])
 {
-    // Setup button
-    button = Button(0, 0, 240, 240, SHAPETYPE_INVISIBLE);
-    button.strictPress = true;
-    button.OnClick = [&] () {
-        invert = !invert;
-        refreshBatteryPercent = true;
-        wasCharging = !charging;
-        batteryPercentage = 1.1f;
-        lastMinute--;
-        lastDay--;
-        watch->driver->tft->fillScreen(invert ? TFT_WHITE : TFT_BLACK);
-    };
-
     // Cache text dimensions
 
     // Time text
@@ -94,7 +81,6 @@ void Homestead::HandleEvent(Event& e)
         break;
     }
 
-    button.HandleEvent(e);
 }
 
 void Homestead::Render(Display& display)
@@ -111,8 +97,8 @@ void Homestead::Render(Display& display)
 
         // Now overwrite previous text
         display.GetTFT()->setTextSize(3);
-        display.GetTFT()->setTextColor(invert ? TFT_BLACK : TFT_WHITE);
-        timeTextArea.DrawFilled(display, invert ? TFT_WHITE : TFT_BLACK);
+        display.GetTFT()->setTextColor(TFT_WHITE);
+        timeTextArea.DrawFilled(display, TFT_BLACK);
         display.GetTFT()->drawString(text, timeTextArea.x, timeTextArea.y, 4);
     }
 
@@ -125,14 +111,14 @@ void Homestead::Render(Display& display)
 
         // Now overwrite previous text
         display.GetTFT()->setTextSize(1);
-        display.GetTFT()->setTextColor(invert ? TFT_BLACK : TFT_WHITE);
+        display.GetTFT()->setTextColor(TFT_WHITE);
 
         // Convert date to text
         char text[13] = { '\0' };
-        sprintf(text, "%.3s %d%s %.3s", GetWeekdayName(watch->driver->rtc->getDayOfWeek(day, date.month, date.year) - 1), day, GetNumericSuffix(day), GetMonthName(date.month));
+        sprintf(text, "%.3s %d%s %.3s", GetWeekdayName(watch->driver->rtc->getDayOfWeek(day, date.month, date.year)), day, GetNumericSuffix(day), GetMonthName(date.month));
         //sprintf(text, watch->driver->rtc->formatDateTime(PCF_TIMEFORMAT_DD_MM_YYYY));
 
-        wipeDateArea.DrawFilled(display, invert ? TFT_WHITE : TFT_BLACK);
+        wipeDateArea.DrawFilled(display, TFT_BLACK);
         // Width can change
         dateTextArea.w = display.GetTFT()->textWidth(text, 4);
         dateTextArea.x = 120 - (dateTextArea.w / 2);
@@ -153,12 +139,12 @@ void Homestead::Render(Display& display)
 
             // Draw text first
             display.GetTFT()->setTextSize(1);
-            display.GetTFT()->setTextColor(invert ? TFT_BLACK : TFT_WHITE);
+            display.GetTFT()->setTextColor(TFT_WHITE);
 
             char text[5] = { '\0', '\0', '\0', '\0', '\0' };
             sprintf(text, "%d%%", (int)(batteryPercentage * 100.0f));
 
-            wipeBatteryArea.DrawFilled(display, invert ? TFT_WHITE : TFT_BLACK);
+            wipeBatteryArea.DrawFilled(display, TFT_BLACK);
             // Width can change
             batteryTextArea.w = display.GetTFT()->textWidth(text, 4);
             batteryTextArea.x = 120 - (batteryTextArea.w / 2);
@@ -178,14 +164,11 @@ void Homestead::Render(Display& display)
 
         wasCharging = charging;
 
-        if (!invert)
+        // Now draw the fancy overlay
+        for (uint8_t i = 0; i < 2; i++)
         {
-            // Now draw the fancy overlay
-            for (uint8_t i = 0; i < 2; i++)
-            {
-                uint8_t dimensions = 240 - (i * 2);
-                display.GetTFT()->drawRoundRect(i, i, dimensions, dimensions, 32 - i * 2, charging ? TFT_GREEN : TFT_BLUE);
-            }
+            uint8_t dimensions = 240 - (i * 2);
+            display.GetTFT()->drawRoundRect(i, i, dimensions, dimensions, 32 - i * 2, charging ? TFT_GREEN : TFT_BLUE);
         }
     }
 
