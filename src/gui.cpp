@@ -73,3 +73,121 @@ bool Button::IsPressed()
 {
     return pressed;
 }
+
+//
+// Text
+//
+
+void Text::Render(Display& display)
+{
+    if (refresh)
+    {
+        refresh = false;
+
+        TFT_eSPI* tft = display.GetTFT();
+        tft->setTextWrap(wrapText);
+        tft->setTextDatum(datum);
+        tft->setTextFont(textFont);
+        tft->setTextSize(textSize);
+
+        width = tft->textWidth(text.c_str());
+        // TODO: account for wrapping.
+        height = tft->fontHeight();
+
+        // Clear old text area
+        if (oldArea.x != rect.x || oldArea.y != rect.y || oldArea.w != rect.w || oldArea.h != rect.h)
+        {
+            tft->setTextColor(fg, TFT_TRANSPARENT);
+            tft->fillRect(oldArea.x, oldArea.y, oldArea.w, oldArea.h, bg);
+            oldArea.x = rect.x;
+            oldArea.y = rect.y;
+            oldArea.w = width;
+            oldArea.h = height;
+        }
+        else
+        {
+            // Just overwrite old text.
+            tft->setTextColor(fg, bg);
+        }
+
+        tft->drawString(text.c_str(), rect.x, rect.y, textFont);
+    }
+}
+
+void Text::SetText(std::string&& text)
+{
+    this->text = text;
+    // It's up to the caller to be smart about setting text, assume there is a change.
+    refresh = true;
+}
+
+std::string Text::GetText()
+{
+    return text;
+}
+
+void Text::SetColor(uint16_t color)
+{
+    refresh |= color != fg;
+    fg = color;
+}
+
+uint16_t Text::GetColor()
+{
+    return fg;
+}
+
+void Text::SetClearColor(uint16_t color)
+{
+    refresh |= color != bg;
+    bg = color;
+}
+
+uint16_t Text::GetClearColor()
+{
+    return bg;
+}
+
+void Text::SetWrap(bool wrap)
+{
+    refresh |= wrap != wrapText;
+    wrapText = wrap;
+}
+
+bool Text::IsWrapped()
+{
+    return wrapText;
+}
+
+void Text::SetDatum(uint8_t datum)
+{
+    refresh |= datum != this->datum;
+    this->datum = datum;
+}
+
+uint8_t Text::GetDatum()
+{
+    return datum;
+}
+
+void Text::SetSize(uint8_t size)
+{
+    refresh |= textSize != size;
+    textSize = size;
+}
+
+uint8_t Text::GetSize()
+{
+    return textSize;
+}
+
+void Text::SetFont(uint8_t selectFont)
+{
+    refresh |= selectFont != textFont;
+    textFont = selectFont;
+}
+
+uint8_t Text::GetFont()
+{
+    return textFont;
+}
