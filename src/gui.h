@@ -71,17 +71,17 @@ private:
 class Text : public Widget
 {
 public:
-    Text() = default;
+    Text() { oldArea.x = oldArea.y = oldArea.w = oldArea.h = 0; }
     Text(uint8_t x, uint8_t y, uint8_t maxWidth = 240, uint8_t maxHeight = 240) : Widget(x, y, maxWidth, maxHeight) { oldArea.x = oldArea.y = oldArea.w = oldArea.h = 0; }
 
     // Renders the text if it has changed.
     void Render(Display& display);
 
     // Set the text string.
-    void SetText(std::string&& text);
+    void SetText(const char* text);
 
     // Return the text string.
-    std::string GetText();
+    const char* GetText();
 
     // Set the text color
     void SetColor(uint16_t color);
@@ -119,6 +119,9 @@ public:
     // Return the font used.
     uint8_t GetFont();
 
+    // Outputs the anchor/datum position into x and y given a text width.
+    void GetDatumOffset(uint8_t width, uint8_t height, uint8_t* x, uint8_t* y);
+
 private:
     // The old area the text was drawn in.
     Uint8Rect oldArea;
@@ -127,10 +130,10 @@ private:
     std::string text;
 
     // Width of the text.
-    uint8_t width;
+    uint8_t width = 240;
 
     // Height of the text.
-    uint8_t height;
+    uint8_t height = 240;
 
     // The current font to use.
     uint8_t textFont = 6;
@@ -142,7 +145,7 @@ private:
     bool refresh = false;
 
     // Should this text wrap?
-    bool wrapText = true;
+    bool wrapText = false;
 
     // See TFT_eSPI.h Section 5 for info. Basically how the text is anchored.
     // Defaults to top left.

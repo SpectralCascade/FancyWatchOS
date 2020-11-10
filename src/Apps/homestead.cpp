@@ -2,37 +2,26 @@
 
 void Homestead::OnStart(int argc, char* argv[])
 {
-    // Cache text dimensions
+    if (IsForeground())
+    {
+        // May as well do this here, though should really do on foreground.
+        watch->driver->tft->fillScreen(TFT_BLACK);
+    }
 
     // Time text
-    watch->driver->tft->setTextSize(3);
-    timeTextArea.w = watch->driver->tft->textWidth("00:00", 4);
-    timeTextArea.h = watch->driver->tft->fontHeight(4);
-    timeTextArea.x = 120 - (timeTextArea.w / 2);
-    timeTextArea.y = 120 - (timeTextArea.h / 2);
-    if (IsForeground())
-    {
-        watch->driver->tft->fillScreen(TFT_BLACK);
-    }
+    timeText.SetFont(4);
+    timeText.SetSize(3);
+    timeText.SetDatum(MC_DATUM);
 
     // Date text
-    watch->driver->tft->setTextSize(1);
-    dateTextArea.w = watch->driver->tft->textWidth("Sun 13th Feb", 4);
-    dateTextArea.h = watch->driver->tft->fontHeight(4);
-    dateTextArea.x = 120 - (dateTextArea.w / 2);
-    dateTextArea.y = timeTextArea.y + timeTextArea.h + 8;
-    if (IsForeground())
-    {
-        watch->driver->tft->fillScreen(TFT_BLACK);
-    }
-    wipeDateArea = dateTextArea;
+    dateText.SetFont(4);
+    dateText.SetSize(1);
+    dateText.SetDatum(MC_DATUM);
 
     // Battery text
-    batteryTextArea.w = watch->driver->tft->textWidth("000%", 4);
-    batteryTextArea.h = watch->driver->tft->fontHeight(4);
-    batteryTextArea.x = 120 - (batteryTextArea.w / 2);
-    batteryTextArea.y = timeTextArea.y - batteryTextArea.h - 8;
-    wipeBatteryArea = batteryTextArea;
+    batteryText.SetFont(4);
+    batteryText.SetSize(1);
+    batteryText.SetDatum(MC_DATUM);
 
     // Check if the watch started up while charging
     charging = watch->driver->power->isChargeing();
@@ -95,11 +84,8 @@ void Homestead::Render(Display& display)
         char text[6] = { '\0' };
         sprintf(text, "%02u:%02u", date.hour, date.minute);
 
-        // Now overwrite previous text
-        display.GetTFT()->setTextSize(3);
-        display.GetTFT()->setTextColor(TFT_WHITE);
-        timeTextArea.DrawFilled(display, TFT_BLACK);
-        display.GetTFT()->drawString(text, timeTextArea.x, timeTextArea.y, 4);
+        timeText.SetText(text);
+        timeText.Render(display);
     }
 
     if (lastDay != date.day)
@@ -109,21 +95,13 @@ void Homestead::Render(Display& display)
         // TODO: remove this hacky time fix... should sync to WiFi.
         uint8_t day = date.day - 1;
 
-        // Now overwrite previous text
-        display.GetTFT()->setTextSize(1);
-        display.GetTFT()->setTextColor(TFT_WHITE);
-
         // Convert date to text
         char text[13] = { '\0' };
         sprintf(text, "%.3s %d%s %.3s", GetWeekdayName(watch->driver->rtc->getDayOfWeek(day, date.month, date.year)), day, GetNumericSuffix(day), GetMonthName(date.month));
         //sprintf(text, watch->driver->rtc->formatDateTime(PCF_TIMEFORMAT_DD_MM_YYYY));
 
-        wipeDateArea.DrawFilled(display, TFT_BLACK);
-        // Width can change
-        dateTextArea.w = display.GetTFT()->textWidth(text, 4);
-        dateTextArea.x = 120 - (dateTextArea.w / 2);
-
-        display.GetTFT()->drawString(text, dateTextArea.x, dateTextArea.y, 4);
+        dateText.SetText(text);
+        dateText.Render(display);
     }
 
     // Update battery percentage every BATTERY_REFRESH_TIME seconds, or on forced refresh.
@@ -137,19 +115,11 @@ void Homestead::Render(Display& display)
             batteryPercentage = Clamp(currentBatteryPercentage, 0.0f, 1.0f);
             LogLine(0, "Battery percent = %f", currentBatteryPercentage);
 
-            // Draw text first
-            display.GetTFT()->setTextSize(1);
-            display.GetTFT()->setTextColor(TFT_WHITE);
-
             char text[5] = { '\0', '\0', '\0', '\0', '\0' };
             sprintf(text, "%d%%", (int)(batteryPercentage * 100.0f));
 
-            wipeBatteryArea.DrawFilled(display, TFT_BLACK);
-            // Width can change
-            batteryTextArea.w = display.GetTFT()->textWidth(text, 4);
-            batteryTextArea.x = 120 - (batteryTextArea.w / 2);
-
-            display.GetTFT()->drawString(text, batteryTextArea.x, batteryTextArea.y, 4);
+            batteryText.SetText(text);
+            batteryText.Render(display);
         }
 
     }
