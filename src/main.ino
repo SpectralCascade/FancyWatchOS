@@ -21,7 +21,7 @@ bool touchIRQ = false;
 bool bmaIRQ = false;
 
 // The default library only supports up to 2 touches at a time, though in theory it could support more.
-TouchEvent lastTouches[2] = { { 0xFF, -1, -1 }, { 0xFF, -1, -1 } };
+TouchEvent lastTouches[2] = { { 0xFF, 0xFFFF, 0xFFFF }, { 0xFF, 0xFFFF, 0xFFFF } };
 uint8_t lastNumTouches = 0;
 
 void setup()
@@ -177,17 +177,15 @@ void loop()
         else
         {
             // TODO: handle multiple touch interrupts in a single frame?
-            FT5206_Class* touch = kernel->driver->touch;
+            CapacitiveTouch* touch = kernel->driver->touch;
 
-            uint8_t touches = touch->touched();
+            uint8_t touches = touch->getTouched();
             Event e[2];
             for (uint8_t i = 0; i < touches; i++)
             {
                 // Grab touch data
                 e[i].touch.touchID = i;
-                TP_Point point = touch->getPoint(i);
-                e[i].touch.x = point.x;
-                e[i].touch.y = point.y;
+                touch->getPoint(e[i].touch.x, e[i].touch.y);
 
                 // Check which type of touch event this is.
                 if (i >= lastNumTouches)

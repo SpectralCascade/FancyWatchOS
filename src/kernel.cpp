@@ -34,6 +34,8 @@ Kernel::Kernel(TTGOClass* device, QueueHandle_t eventQueue)
     driver->power->setPowerOutPut(AXP202_DCDC2, AXP202_OFF);
     driver->power->setPowerOutPut(AXP202_LDO3, AXP202_OFF);
     driver->power->setPowerOutPut(AXP202_LDO4, AXP202_OFF);
+    driver->power->adc1Enable(AXP202_TS_PIN_ADC1 | AXP202_VBUS_VOL_ADC1 | AXP202_VBUS_CUR_ADC1 | AXP202_BATT_CUR_ADC1 | AXP202_BATT_VOL_ADC1, true);
+    driver->power->adc2Enable(AXP202_TEMP_MONITORING_ADC2, true);
 
     driver->motor_begin();
 

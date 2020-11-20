@@ -10,7 +10,7 @@
 class Homestead : public Application
 {
 public:
-    Homestead() : batteryText(120, 120 - 60), dateText(120, 120 + 56), timeText(120, 120) {}
+    Homestead() : batteryText(120, 120 - 60), dateText(120, 120 + 56), timeText(120, 120), tempText(120, 120 + 56 + 28) {}
 
     void OnStart(int argc, char* argv[]);
 
@@ -29,6 +29,9 @@ private:
     Text batteryText;
     Text dateText;
     Text timeText;
+    Text tempText;
+
+    float oldTemp = 0;
 
     float batteryPercentage = 1.1f;
 

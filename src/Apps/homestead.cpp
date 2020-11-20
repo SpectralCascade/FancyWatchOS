@@ -23,6 +23,11 @@ void Homestead::OnStart(int argc, char* argv[])
     dateText.SetSize(1);
     dateText.SetDatum(MC_DATUM);
 
+    // Battery temperature text
+    tempText.SetFont(4);
+    tempText.SetSize(1);
+    tempText.SetDatum(MC_DATUM);
+
     // Check if the watch started up while charging
     charging = watch->driver->power->isChargeing();
 
@@ -109,17 +114,27 @@ void Homestead::Render(Display& display)
     {
         float currentBatteryPercentage = (float)watch->driver->power->getBattPercentage() / 100.0f;
 
+        char text[20] = { '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0' };
+
         // No need to update unless battery percentage actually changes
         if (currentBatteryPercentage < batteryPercentage || (currentBatteryPercentage > batteryPercentage && charging))
         {
             batteryPercentage = Clamp(currentBatteryPercentage, 0.0f, 1.0f);
             LogLine(0, "Battery percent = %f", currentBatteryPercentage);
 
-            char text[5] = { '\0', '\0', '\0', '\0', '\0' };
             sprintf(text, "%d%%", (int)(batteryPercentage * 100.0f));
 
             batteryText.SetText(text);
             batteryText.Render(display);
+        }
+
+        float temp = watch->driver->power->getTemp();
+        if (oldTemp != temp)
+        {
+            sprintf(text, "%.1f *c", temp);
+            tempText.SetText(text);
+            tempText.Render(display);
+            oldTemp = temp;
         }
 
         refreshBatteryPercent = false;

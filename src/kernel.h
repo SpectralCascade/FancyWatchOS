@@ -61,8 +61,8 @@ struct RealtimeClockEvent
 struct TouchEvent
 {
     uint8_t touchID;
-    int16_t x;
-    int16_t y;
+    uint16_t x;
+    uint16_t y;
 };
 
 // Structure containing a union defining different types of events with their meta data.
