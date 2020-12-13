@@ -80,7 +80,8 @@ void InitInterrupts(TTGOClass* device)
     // Detects when you tilt the watch.
     device->bma->enableTiltInterrupt();
     // "Double-tap" interrupt - detects motion from double tapping the watch quickly.
-    device->bma->enableWakeupInterrupt();
+    // Removed for now. While neat, in practice it unintendedly fires more often than not.
+    //device->bma->enableWakeupInterrupt();
     // Assumes the sensor is configured, otherwise uses default settings.
     device->bma->attachInterrupt();
 

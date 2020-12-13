@@ -18,8 +18,8 @@
 #define MAX_APP_STACK 256
 
 // TODO: replace with better timeout system.
-// 10 second timeout of the display without any inputs.
-#define DISPLAY_TIMEOUT 10000
+// 6 second timeout of the display without any inputs.
+#define DISPLAY_TIMEOUT 6000
 
 // Forward declarations
 class TTGOClass;
