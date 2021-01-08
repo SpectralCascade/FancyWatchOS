@@ -60,9 +60,9 @@ void InitInterrupts(TTGOClass* device)
     //
     // RTC interrupts
     //
-    pinMode(RTC_INT, INPUT_PULLUP);
+    /*pinMode(RTC_INT, INPUT_PULLUP);
     attachInterrupt(RTC_INT, [] { rtcIRQ = true; }, FALLING);
-    device->rtc->disableAlarm();
+    device->rtc->disableAlarm();*/
 
     // Initialise RTC based on compile time.
     device->rtc->check();
@@ -133,7 +133,7 @@ void loop()
     //
     // RTC
     //
-    if (rtcIRQ)
+    /*if (rtcIRQ)
     {
         PCF8563_Class* rtc = kernel->driver->rtc;
         detachInterrupt(RTC_INT);
@@ -164,7 +164,7 @@ void loop()
         xQueueSend(events, &e, portMAX_DELAY);
 
         rtcIRQ = false;
-    }
+    }*/
 
     //
     // Touches
@@ -278,6 +278,13 @@ void loop()
     {
         // May as well save some processing cycles while inactive, interrupts will still be handled.
         vTaskDelay(DISPLAY_REFRESH_DELAY);
+    }
+
+    // Empty the events queue
+    while (uxQueueMessagesWaiting(events) > 0)
+    {
+        Event e;
+        xQueueReceive(events, &e, portMAX_DELAY);
     }
 }
 

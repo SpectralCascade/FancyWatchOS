@@ -88,8 +88,10 @@ Kernel::Kernel(TTGOClass* device, QueueHandle_t eventQueue)
 
     // Disable BMA423 step counting (for now).
     driver->bma->enableFeature(BMA423_STEP_CNTR, false);
+    // Keep tilt wakeup enabled, it's the most useful.
     driver->bma->enableFeature(BMA423_TILT, true);
-    driver->bma->enableFeature(BMA423_WAKEUP, true);
+    // Disable the double tap, it's not that useful.
+    driver->bma->enableFeature(BMA423_WAKEUP, false);
 
     // Set step count to zero.
     driver->bma->resetStepCounter();
