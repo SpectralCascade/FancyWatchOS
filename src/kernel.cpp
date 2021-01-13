@@ -119,16 +119,9 @@ void Kernel::Update()
     while (uxQueueMessagesWaiting(events) > 0)
     {
         xQueueReceive(events, &e, portMAX_DELAY);
-        switch (e.type)
+        if (e.type == EVENT_POWER_BUTTON && wasActive)
         {
-        case EVENT_POWER_BUTTON:
-            if (wasActive)
-            {
-                EnterSleep();
-            }
-            break;
-        default:
-            break;
+            EnterSleep();
         }
 
         // Now apps can handle the event. This happens even if an app is not in the foreground.
@@ -280,18 +273,18 @@ void Kernel::SetActive(bool active)
     // Switch between energy-saving and regular operation modes.
     if (active)
     {
-        setCpuFrequencyMhz(120);
+        setCpuFrequencyMhz(160);
         display.Enable();
-        driver->touchToMonitor();
+        //driver->touchToMonitor();
         EnableEvents(toggledEvents);
         napTimer.Start();
     }
     else
     {
         DisableEvents(toggledEvents);
-        driver->touchToSleep();
+        //driver->touchToSleep();
         display.Disable();
-        setCpuFrequencyMhz(20);
+        setCpuFrequencyMhz(10);
     }
 }
 

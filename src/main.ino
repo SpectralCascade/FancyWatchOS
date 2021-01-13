@@ -70,8 +70,9 @@ void InitInterrupts(TTGOClass* device)
     //
     // Touch interrupts
     //
+
     pinMode(TOUCH_INT, INPUT_PULLUP);
-    attachInterrupt(TOUCH_INT, [] { touchIRQ = true; }, FALLING);
+    attachInterrupt(TOUCH_INT, [] () { touchIRQ = true; }, FALLING);
 
     //
     // BMA interrupts.
@@ -171,6 +172,7 @@ void loop()
     //
     if (touchIRQ)
     {
+        Log("DEBUG: Touch IRQ triggered...");
         if (!(kernel->enabledEventsMask & (EVENT_TOUCH_BEGIN | EVENT_TOUCH_CHANGE | EVENT_TOUCH_END)))
         {
             touchIRQ = false;
@@ -182,6 +184,9 @@ void loop()
 
             uint8_t touches = touch->getTouched();
             Event e[2];
+            uint16_t x, y;
+            touch->getPoint(x, y);
+            Log("Total touches = %d, returned point: %d, %d", touches, x, y);
             for (uint8_t i = 0; i < touches; i++)
             {
                 // Grab touch data

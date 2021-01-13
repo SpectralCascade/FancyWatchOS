@@ -46,7 +46,7 @@ public:
 
     void HandleEvent(Event& e);
 
-    void Render(Display& display);
+    void Render(Display& display, const Vector2& offset = Vector2::Zero);
 
     uint16_t colorNormal = COLOR(0, 200, 200);
     uint16_t colorPressed = COLOR(0, 100, 100);
@@ -54,6 +54,9 @@ public:
     bool IsPressed();
 
     std::function<void()> OnClick = [] () {};
+    std::function<void(const Vector2&)> OnPointerDown = [] (const Vector2& pos) {};
+    std::function<void(const Vector2&)> OnPointerUp = [] (const Vector2& pos) {};
+    std::function<void(const Vector2&)> OnDrag = [] (const Vector2& pos) {};
 
     // Set to true to ensure that presses are only registered upon EVENT_TOUCH_BEGIN.
     bool strictPress = false;
@@ -75,7 +78,7 @@ public:
     Text(uint8_t x, uint8_t y, uint8_t maxWidth = 240, uint8_t maxHeight = 240) : Widget(x, y, maxWidth, maxHeight) { oldArea.x = oldArea.y = oldArea.w = oldArea.h = 0; }
 
     // Renders the text if it has changed.
-    void Render(Display& display);
+    void Render(Display& display, const Vector2& offset = Vector2::Zero);
 
     // Set the text string.
     void SetText(const char* text);

@@ -20,47 +20,64 @@ void Button::HandleEvent(Event& e)
     {
         switch (e.type)
         {
-        case EVENT_TOUCH_CHANGE:
-            if (strictPress)
+            case EVENT_TOUCH_CHANGE:
+            {
+                if (pressed)
+                {
+                    OnDrag(Vector2((float)e.touch.x, (float)e.touch.y));
+                }
+                if (strictPress)
+                {
+                    break;
+                }
+            }
+            case EVENT_TOUCH_BEGIN:
+            {
+                pressed = rect.Contains(e.touch.x, e.touch.y);
+                if (pressed && !wasPressed)
+                {
+                    OnPointerDown(Vector2((float)e.touch.x, (float)e.touch.y));
+                }
+                break;
+            }
+            case EVENT_TOUCH_END:
+            {
+                if (pressed)
+                {
+                    pressed = false;
+                    OnPointerUp(Vector2((float)e.touch.x, (float)e.touch.y));
+                    if (rect.Contains(e.touch.x, e.touch.y))
+                    {
+                        OnClick();
+                    }
+                }
+                break;
+            }
+            default:
             {
                 break;
             }
-        case EVENT_TOUCH_BEGIN:
-            pressed = rect.Contains(e.touch.x, e.touch.y);
-            break;
-        case EVENT_TOUCH_END:
-            if (pressed)
-            {
-                pressed = false;
-                if (rect.Contains(e.touch.x, e.touch.y))
-                {
-                    OnClick();
-                }
-            }
-            break;
-        default:
-            break;
         }
     }
 }
 
-void Button::Render(Display& display)
+void Button::Render(Display& display, const Vector2& offset)
 {
     if (wasPressed != pressed && shape != SHAPETYPE_INVISIBLE)
     {
         switch (shape)
         {
         case SHAPETYPE_RECT:
-            display.GetTFT()->fillRect(rect.x, rect.y, rect.w, rect.h, pressed ? colorPressed : colorNormal);
+            display.GetTFT()->fillRect((int32_t)rect.x + (int32_t)offset.x, (int32_t)rect.y + (int32_t)offset.y, rect.w, rect.h, pressed ? colorPressed : colorNormal);
             break;
         case SHAPETYPE_RECT_ROUNDED:
-            display.GetTFT()->fillRoundRect(rect.x - radius, rect.y - radius, rect.w, rect.h, radius, pressed ? colorPressed : colorNormal);
+            display.GetTFT()->fillRoundRect(((int32_t)rect.x + (int32_t)offset.x) - radius, ((int32_t)rect.y + (int32_t)offset.y) - radius, rect.w, rect.h, radius, pressed ? colorPressed : colorNormal);
             break;
         case SHAPETYPE_CIRCLE:
-            display.GetTFT()->fillCircle(rect.x, rect.y, radius, pressed ? colorPressed : colorNormal);
+            display.GetTFT()->fillCircle((int32_t)rect.x + (int32_t)offset.x, (int32_t)rect.y + (int32_t)offset.y, radius, pressed ? colorPressed : colorNormal);
             break;
         case SHAPETYPE_ELLIPSE:
-            display.GetTFT()->fillEllipse(rect.x, rect.y, rect.w, rect.h, pressed ? colorPressed : colorNormal);
+            display.GetTFT()->fillEllipse((int32_t)rect.x + (int32_t)offset.x, (int32_t)rect.y + (int32_t)offset.y, rect.w, rect.h, pressed ? colorPressed : colorNormal);
             break;
         default:
             break;
@@ -78,7 +95,7 @@ bool Button::IsPressed()
 // Text
 //
 
-void Text::Render(Display& display)
+void Text::Render(Display& display, const Vector2& offset)
 {
     if (refresh)
     {
@@ -96,7 +113,7 @@ void Text::Render(Display& display)
         height = tft->fontHeight();
 
         // Clear old text area
-        tft->fillRect(oldArea.x, oldArea.y, oldArea.w > 0 ? oldArea.w : width, oldArea.h > 0 ? oldArea.h : height, bg);
+        tft->fillRect((int32_t)oldArea.x + (int32_t)offset.x, (int32_t)oldArea.y + (int32_t)offset.y, oldArea.w > 0 ? oldArea.w : width, oldArea.h > 0 ? oldArea.h : height, bg);
 
         uint8_t x, y;
         GetDatumOffset(width, height, &x, &y);
@@ -107,8 +124,7 @@ void Text::Render(Display& display)
         oldArea.w = width;
         oldArea.h = height;
 
-
-        tft->drawString(text.c_str(), rect.x, rect.y, textFont);
+        tft->drawString(text.c_str(), (int32_t)rect.x + (int32_t)offset.x, (int32_t)rect.y + (int32_t)offset.x, textFont);
     }
 }
 
